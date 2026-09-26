@@ -1,0 +1,15 @@
+{
+  "teamName": "Cork Royal Challengers",
+  "shortName": "CRC",
+  "city": "Cork",
+  "country": "Ireland",
+  "colors": {
+    "primary": "#DC2626",
+    "secondary": "#D97706",
+    "dark": "#0F172A",
+    "accent": "#F59E0B"
+  },
+  "homeGround": "Nemo Rangers / Mardyke, Cork",
+  "established": 2026,
+  "captain": "Joy D"
+}

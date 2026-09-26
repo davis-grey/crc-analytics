@@ -1,0 +1,66 @@
+[
+  {
+    "id": "yash",
+    "name": "Yash",
+    "role": "Top-order Batter / Bowler",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm medium",
+    "jerseyNumber": 18
+  },
+  {
+    "id": "jenson",
+    "name": "Jenson",
+    "role": "All-Rounder",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm fast-medium",
+    "jerseyNumber": 7
+  },
+  {
+    "id": "davison",
+    "name": "Davison",
+    "role": "Bowler",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm medium",
+    "jerseyNumber": 11
+  },
+  {
+    "id": "srikanth",
+    "name": "Srikanth",
+    "role": "Bowling All-Rounder",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm off-spin",
+    "jerseyNumber": 9
+  },
+  {
+    "id": "savio",
+    "name": "Savio",
+    "role": "All-Rounder",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm medium",
+    "jerseyNumber": 24
+  },
+  {
+    "id": "shivam",
+    "name": "Shivam",
+    "role": "Top-order Batter",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm off-spin",
+    "jerseyNumber": 45
+  },
+  {
+    "id": "rifaz",
+    "name": "Rifaz",
+    "role": "Batter / Gun Fielder",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm medium",
+    "jerseyNumber": 3
+  },
+  {
+    "id": "joy_d",
+    "name": "Joy D",
+    "role": "Wicketkeeper / Captain",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Wicketkeeper",
+    "jerseyNumber": 1
+  }
+]

@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cork Royal Challengers - Cricket Match & Stats Hub</title>
+  <meta name="description" content="Official stats, match scorecards, tournaments, and player leaderboards for Cork Royal Challengers Cricket Club, Cork, Ireland.">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            gold: {
+              400: '#FBBF24',
+              500: '#F59E0B',
+              600: '#D97706',
+            },
+            royal: {
+              red: '#DC2626',
+              darkRed: '#991B1B',
+              navy: '#0F172A',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js CDN for Worm & Manhattan Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- HTML2Canvas for 1-click WhatsApp poster generation -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      font-family: 'Outfit', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 4px;
+    }
+    .active-tab {
+      color: #fbbf24 !important;
+      border-color: #fbbf24 !important;
+    }
+    .active-subtab {
+      background-color: #f59e0b !important;
+      color: #0f172a !important;
+      font-weight: 700 !important;
+    }
+    .sortable-th {
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.15s;
+    }
+    .sortable-th:hover {
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black overflow-x-hidden">
+
+  <!-- Top Navigation & Club Branding Header -->
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Brand Logo & Name -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 ring-1 ring-amber-400">
+            🦁
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-black tracking-tight text-white uppercase">Cork Royal Challengers</h1>
+              <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">CRC</span>
+            </div>
+            <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <span>Cork, Ireland</span>
+              <span>•</span>
+              <span class="text-amber-400">Club Hub</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Season Pill -->
+        <div class="flex items-center gap-3">
+          <span class="px-3 py-1 bg-red-950/80 border border-red-500/40 rounded-full text-xs font-bold text-red-300">
+            Season 2026-27
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Dedicated Tournaments Section Included!) -->
+    <div class="border-t border-slate-800/80 bg-slate-900/60">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-1 sm:space-x-6 overflow-x-auto custom-scrollbar text-xs font-semibold" aria-label="Tabs">
+          <button data-tab-target="overview" class="tab-btn active-tab py-3 px-3 border-b-2 text-amber-400 border-amber-400 flex items-center gap-1.5 shrink-0 transition-colors">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+          </button>
+          <button data-tab-target="tournaments" class="tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 shrink-0 transition-colors">
+            <i data-lucide="shield" class="w-4 h-4 text-amber-400"></i> Tournaments
+          </button>
+          <button data-tab-target="matches" class="tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 shrink-0 transition-colors">
+            <i data-lucide="trophy" class="w-4 h-4"></i> Matches
+          </button>
+          <button data-tab-target="leaderboard" class="tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 shrink-0 transition-colors">
+            <i data-lucide="award" class="w-4 h-4"></i> Leaderboard & Caps
+          </button>
+          <button data-tab-target="players" class="tab-btn py-3 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center gap-1.5 shrink-0 transition-colors">
+            <i data-lucide="users" class="w-4 h-4"></i> Squad Profiles
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Format Filter & MVP Explainer Bar (Defaults to All Formats) -->
+  <div class="bg-slate-900/90 border-b border-slate-800 py-2.5 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-400 flex items-center gap-1 font-medium">
+          <i data-lucide="filter" class="w-3.5 h-3.5 text-amber-400"></i> Format:
+        </span>
+        <select id="filter-environment" onchange="onFilterChange()" class="bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-500">
+          <option value="ALL" selected>All Formats (Indoor & Outdoor)</option>
+          <option value="Indoor">Indoor</option>
+          <option value="Outdoor">Outdoor</option>
+        </select>
+        <span id="active-tournament-pill" class="hidden text-[11px] bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+          <span id="active-tournament-name"></span>
+          <button onclick="clearTournamentFilter()" class="hover:text-white ml-1">×</button>
+        </span>
+      </div>
+
+      <!-- Quick MVP Explainer Button -->
+      <button onclick="openMvpExplainerModal()" class="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1.5 transition-colors bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1 rounded-lg border border-amber-500/30">
+        <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> How MVP Points Work
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- TAB 1: OVERVIEW -->
+    <div id="tab-panel-overview" class="tab-content-panel space-y-6">
+      
+      <!-- Season Record Section -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Season 2026-27 Performance</h2>
+          <span class="text-[11px] text-slate-400" id="overview-filter-indicator">All Formats</span>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-md">
+            <span class="text-xs text-slate-400 block mb-1">Matches Played</span>
+            <div class="text-2xl font-black text-white font-mono" id="stat-total-matches">3</div>
+            <span class="text-[10px] text-amber-400">Total Fixtures</span>
+          </div>
+          <div class="bg-slate-900/80 border border-emerald-900/40 rounded-2xl p-4 shadow-md">
+            <span class="text-xs text-slate-400 block mb-1">Matches Won</span>
+            <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-matches-won">2</div>
+            <span class="text-[10px] text-emerald-500/80">Wins vs Stars & Royals</span>
+          </div>
+          <div class="bg-slate-900/80 border border-rose-900/40 rounded-2xl p-4 shadow-md">
+            <span class="text-xs text-slate-400 block mb-1">Matches Lost</span>
+            <div class="text-2xl font-black text-rose-400 font-mono" id="stat-matches-lost">1</div>
+            <span class="text-[10px] text-rose-400/80">vs Nemo Rising</span>
+          </div>
+          <div class="bg-slate-900/80 border border-amber-900/40 rounded-2xl p-4 shadow-md">
+            <span class="text-xs text-slate-400 block mb-1">Win Rate</span>
+            <div class="text-2xl font-black text-amber-400 font-mono" id="stat-win-rate">67%</div>
+            <span class="text-[10px] text-amber-300">Strong Season Start</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Caps & Honors Showcase -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Club Caps & Honors</h2>
+          <button onclick="openMvpExplainerModal()" class="text-[11px] text-slate-400 hover:text-amber-400 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3 text-amber-400"></i> MVP Points Formula
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Orange Cap Card -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-amber-950/50 via-slate-900 to-slate-900 border border-amber-500/40 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <span class="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-400">
+                <span class="text-lg">🟠</span> Orange Cap Leader
+              </span>
+              <span class="text-[10px] text-slate-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30">Top Run Scorer</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-black text-white" id="orange-cap-name">Yash</h3>
+                <p class="text-xs text-slate-300 mt-0.5" id="orange-cap-meta">Loading...</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-black text-amber-400 font-mono" id="orange-cap-runs">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Purple Cap Card -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-purple-950/50 via-slate-900 to-slate-900 border border-purple-500/40 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <span class="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-purple-400">
+                <span class="text-lg">🟣</span> Purple Cap Leader
+              </span>
+              <span class="text-[10px] text-slate-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/30">Top Wicket Taker</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-black text-white" id="purple-cap-name">Davison</h3>
+                <p class="text-xs text-slate-300 mt-0.5" id="purple-cap-meta">Loading...</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-black text-purple-400 font-mono" id="purple-cap-wickets">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- MVP Leader Card -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-red-950/50 via-slate-900 to-slate-900 border border-red-500/40 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <span class="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-red-400">
+                <span class="text-lg">⭐</span> Club MVP Leader
+              </span>
+              <span class="text-[10px] text-slate-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30">Match Impact</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-black text-white" id="mvp-leader-name">Jenson</h3>
+                <p class="text-xs text-slate-300 mt-0.5" id="mvp-leader-meta">Loading...</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-black text-red-400 font-mono" id="mvp-leader-points">--</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Season Match Awards Leaders Showcase -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="award" class="w-4 h-4 text-amber-400"></i> Season Match Awards Leaders
+          </h2>
+          <button onclick="switchTab('leaderboard')" class="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-semibold">
+            View Awards Table <i data-lucide="arrow-right" class="w-3 h-3"></i>
+          </button>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <!-- Top Batter Award Leader Card -->
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">🏏 Top Batter</span>
+                <span id="award-top-batter-count" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">--</span>
+              </div>
+              <div id="award-top-batter-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
+            </div>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Top Match Scorer</span>
+          </div>
+
+          <!-- Top Bowler Award Leader Card -->
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-purple-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">🎯 Top Bowler</span>
+                <span id="award-top-bowler-count" class="text-[10px] font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">--</span>
+              </div>
+              <div id="award-top-bowler-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
+            </div>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Top Match Wicket Taker</span>
+          </div>
+
+          <!-- Top Fielder Award Leader Card -->
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-sky-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">🧤 Top Fielder</span>
+                <span id="award-top-fielder-count" class="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">--</span>
+              </div>
+              <div id="award-top-fielder-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
+            </div>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match Dismissals</span>
+          </div>
+
+          <!-- Match MVP Award Leader Card -->
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">⭐ Match MVP</span>
+                <span id="award-match-mvp-count" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">--</span>
+              </div>
+              <div id="award-match-mvp-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
+            </div>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match MVP Honors</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Recent Matches on Overview -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Recent Match Results</h2>
+          <button onclick="switchTab('matches')" class="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1">
+            View All Matches <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div id="overview-recent-matches" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: TOURNAMENTS (Dedicated Section!) -->
+    <div id="tab-panel-tournaments" class="tab-content-panel hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-white">Tournaments (Season 2026-27)</h2>
+          <p class="text-xs text-slate-400">All tournaments and leagues Cork Royal Challengers are competing in this season</p>
+        </div>
+      </div>
+
+      <div id="tournaments-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 3: MATCHES (List view with drilldown into Scorecard tabs) -->
+    <div id="tab-panel-matches" class="tab-content-panel hidden space-y-6">
+      
+      <!-- SUB-VIEW A: MATCHES LIST -->
+      <div id="matches-list-container">
+        <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Matches & Results</h2>
+            <p class="text-xs text-slate-400">Click any match to view the complete summary, scorecard, and over breakdown</p>
+          </div>
+        </div>
+
+        <div id="matches-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- SUB-VIEW B: MATCH DETAIL (Summary First, Tabs at Very Top!) -->
+      <div id="match-scorecard-view" class="hidden">
+        <div id="selected-match-detail">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 4: LEADERBOARDS & CAPS (Sortable Columns!) -->
+    <div id="tab-panel-leaderboard" class="tab-content-panel hidden space-y-8">
+      
+      <!-- MVP Points Explainer Box -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-amber-500/30 rounded-2xl p-4 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg">
+            ⭐
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-white">Cork Royal Challengers MVP Impact Points</h4>
+            <p class="text-xs text-slate-400">Runs (1) • 4s (1) • 6s (2) • Wickets (25) • Maidens (12) • Catches (10) • POTM (20)</p>
+          </div>
+        </div>
+        <button onclick="openMvpExplainerModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
+          <i data-lucide="help-circle" class="w-3.5 h-3.5"></i> Full Formula Rules
+        </button>
+      </div>
+
+      <!-- 1. Batting Leaderboard (Collapsible) -->
+      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
+        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">🟠</span>
+            <div>
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                Batting Leaderboard (Orange Cap Race)
+              </h3>
+              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="leaderboard-orange-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">Orange Cap</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-amber-400 transition-colors">
+              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </div>
+        </summary>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('batting', 'name')">Player <span id="sort-bat-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'matches')">Mat <span id="sort-bat-matches"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'innings')">Inns <span id="sort-bat-innings"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-white font-bold" onclick="sortLeaderboard('batting', 'runs')">Runs <span id="sort-bat-runs"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'highestScore')">HS <span id="sort-bat-highestScore"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'battingAvgNum')">Avg <span id="sort-bat-battingAvgNum"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'strikeRateNum')">SR <span id="sort-bat-strikeRateNum"></span></th>
+                <th class="py-3 px-4 text-right sortable-th text-amber-400" onclick="sortLeaderboard('batting', 'sixes')">6s <span id="sort-bat-sixes"></span></th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-batting-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 2. Bowling Leaderboard (Collapsible) -->
+      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
+        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">🟣</span>
+            <div>
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                Bowling Leaderboard (Purple Cap Race)
+              </h3>
+              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="leaderboard-purple-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2.5 py-1 rounded-lg border border-purple-500/30">Purple Cap</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-purple-400 transition-colors">
+              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </div>
+        </summary>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('bowling', 'name')">Bowler <span id="sort-bowl-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'overs')">Overs <span id="sort-bowl-overs"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'maidens')">Mdns <span id="sort-bowl-maidens"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'runsConceded')">Runs <span id="sort-bowl-runsConceded"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('bowling', 'wickets')">Wkts <span id="sort-bowl-wickets"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'economyNum')">Econ <span id="sort-bowl-economyNum"></span></th>
+                <th class="py-3 px-3 text-right">Best</th>
+                <th class="py-3 px-4 text-right sortable-th" onclick="sortLeaderboard('bowling', 'dots')">Dots <span id="sort-bowl-dots"></span></th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-bowling-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 3. MVP Leaderboard (Collapsible) -->
+      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
+        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⭐</span>
+            <div>
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                Club MVP Impact Standings
+              </h3>
+              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="leaderboard-mvp-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">MVP Leader</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-amber-400 transition-colors">
+              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </div>
+        </summary>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('mvp', 'name')">Player <span id="sort-mvp-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'runs')">Runs <span id="sort-mvp-runs"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'wickets')">Wickets <span id="sort-mvp-wickets"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'totalFielding')">Fielding <span id="sort-mvp-totalFielding"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-400" onclick="sortLeaderboard('mvp', 'potmCount')">POTM <span id="sort-mvp-potmCount"></span></th>
+                <th class="py-3 px-4 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('mvp', 'mvpPoints')">MVP Points <span id="sort-mvp-mvpPoints"></span></th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-mvp-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 4. Match Awards & Honors Leaderboard (Collapsible) -->
+      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
+        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">🏆</span>
+            <div>
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                Match Awards & Honors Leaderboard
+              </h3>
+              <p class="text-xs text-slate-400">Times won each match award • Click column headers to sort</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="leaderboard-awards-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">Total Awards Leader</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-amber-400 transition-colors">
+              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </div>
+        </summary>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('awards', 'name')">Player <span id="sort-awd-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topBatter')">🏏 Top Batter <span id="sort-awd-topBatter"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topBowler')">🎯 Top Bowler <span id="sort-awd-topBowler"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topFielder')">🧤 Top Fielder <span id="sort-awd-topFielder"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'matchMvp')">⭐ Match MVP <span id="sort-awd-matchMvp"></span></th>
+                <th class="py-3 px-4 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('awards', 'total')">🏆 Total Awards <span id="sort-awd-total"></span></th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-awards-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <!-- TAB 5: SQUAD PROFILES -->
+    <div id="tab-panel-players" class="tab-content-panel hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-lg font-bold text-white">Cork Royal Challengers Squad</h2>
+          <p class="text-xs text-slate-400">Click any player to view career breakdown, match history, and badges</p>
+        </div>
+      </div>
+      <div id="players-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+
+
+  </main>
+
+  <!-- MVP Explainer Modal -->
+  <div id="mvp-explainer-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div id="mvp-modal-backdrop" onclick="closeMvpExplainerModal()" class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 shadow-2xl z-10">
+      <div class="flex justify-between items-start mb-4 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">⭐</span>
+          <div>
+            <h3 class="text-lg font-black text-white">How Club MVP Points Work</h3>
+            <p class="text-xs text-slate-400">Fair impact rating across Batting, Bowling, and Fielding</p>
+          </div>
+        </div>
+        <button onclick="closeMvpExplainerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-amber-500/30">
+          <h4 class="font-bold text-amber-400 text-sm mb-2 flex items-center gap-1.5">
+            <i data-lucide="zap" class="w-4 h-4"></i> Batting Points
+          </h4>
+          <ul class="space-y-1.5 text-slate-300">
+            <li class="flex justify-between"><span>Each Run Scored:</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
+            <li class="flex justify-between"><span>Four (4s Bonus):</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
+            <li class="flex justify-between"><span>Six (6s Bonus):</span> <strong class="text-amber-400 font-mono">+2.0 pts</strong></li>
+            <li class="flex justify-between"><span>Score 25+ Runs (Milestone):</span> <strong class="text-emerald-400 font-mono">+10.0 pts</strong></li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-purple-500/30">
+          <h4 class="font-bold text-purple-400 text-sm mb-2 flex items-center gap-1.5">
+            <i data-lucide="target" class="w-4 h-4"></i> Bowling Points
+          </h4>
+          <ul class="space-y-1.5 text-slate-300">
+            <li class="flex justify-between"><span>Each Wicket Taken:</span> <strong class="text-purple-400 font-mono font-bold">+25.0 pts</strong></li>
+            <li class="flex justify-between"><span>Maiden Over Bowled:</span> <strong class="text-white font-mono">+12.0 pts</strong></li>
+            <li class="flex justify-between"><span>Dot Ball Bowled:</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
+            <li class="flex justify-between"><span>Economy ≤ 6.00 RPO (min 1 over):</span> <strong class="text-emerald-400 font-mono">+10.0 pts</strong></li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-sky-500/30">
+          <h4 class="font-bold text-sky-400 text-sm mb-2 flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-4 h-4"></i> Fielding Points
+          </h4>
+          <ul class="space-y-1.5 text-slate-300">
+            <li class="flex justify-between"><span>Catch Taken:</span> <strong class="text-sky-400 font-mono font-bold">+10.0 pts</strong></li>
+            <li class="flex justify-between"><span>Run-out Executed:</span> <strong class="text-sky-400 font-mono font-bold">+15.0 pts</strong></li>
+            <li class="flex justify-between"><span>Stumping:</span> <strong class="text-sky-400 font-mono font-bold">+12.0 pts</strong></li>
+          </ul>
+        </div>
+
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-emerald-500/30">
+          <h4 class="font-bold text-emerald-400 text-sm mb-2 flex items-center gap-1.5">
+            <i data-lucide="trophy" class="w-4 h-4"></i> Match Honors
+          </h4>
+          <ul class="space-y-1.5 text-slate-300">
+            <li class="flex justify-between">
+              <span>Player of the Match (CRC Player):</span>
+              <strong class="text-amber-400 font-mono font-bold">+20.0 pts</strong>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Profile Modal -->
+  <div id="player-profile-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div id="player-modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm"></div>
+    <div class="relative bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 shadow-2xl z-10">
+      <div class="flex justify-between items-start mb-4 pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center font-black text-white text-lg ring-2 ring-amber-400">
+            🦁
+          </div>
+          <div>
+            <h3 id="modal-player-name" class="text-xl font-black text-white">Player Name</h3>
+            <p id="modal-player-role" class="text-xs text-slate-400">Role & Details</p>
+          </div>
+        </div>
+        <button id="player-modal-close" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Batting Summary Grid -->
+      <div class="mb-4">
+        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-2">Batting Statistics</span>
+        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+          <div>
+            <span class="text-[10px] text-slate-400 block">Matches</span>
+            <span id="modal-stat-matches" class="font-mono font-bold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Runs</span>
+            <span id="modal-stat-runs" class="font-mono font-bold text-amber-400 text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Average</span>
+            <span id="modal-stat-avg" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">SR</span>
+            <span id="modal-stat-sr" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">HS</span>
+            <span id="modal-stat-hs" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bowling Summary Grid -->
+      <div class="mb-5">
+        <span class="text-xs font-bold text-purple-400 uppercase tracking-wider block mb-2">Bowling & Fielding</span>
+        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+          <div>
+            <span class="text-[10px] text-slate-400 block">Wickets</span>
+            <span id="modal-stat-wkts" class="font-mono font-bold text-purple-400 text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Overs</span>
+            <span id="modal-stat-overs" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Economy</span>
+            <span id="modal-stat-econ" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Best</span>
+            <span id="modal-stat-best" class="font-mono font-semibold text-white text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">Fielding</span>
+            <span id="modal-stat-catches" class="font-mono font-semibold text-sky-400 text-sm">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match Honors & Awards Summary Grid -->
+      <div class="mb-5">
+        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-2">Match Honors & Awards</span>
+        <div class="grid grid-cols-4 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+          <div>
+            <span class="text-[10px] text-slate-400 block">🏏 Top Bat</span>
+            <span id="modal-award-bat" class="font-mono font-bold text-amber-400 text-sm">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">🎯 Top Bowl</span>
+            <span id="modal-award-bowl" class="font-mono font-bold text-purple-400 text-sm">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">🧤 Top Fld</span>
+            <span id="modal-award-fld" class="font-mono font-bold text-sky-400 text-sm">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block">⭐ Match MVP</span>
+            <span id="modal-award-mvp" class="font-mono font-bold text-amber-300 text-sm">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Match History Breakdown -->
+      <div>
+        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block mb-2.5">Tournament Match Log</span>
+        <div id="modal-match-history" class="space-y-2">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bundled Local / Offline Data -->
+  <script src="data.js"></script>
+  <!-- App Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
