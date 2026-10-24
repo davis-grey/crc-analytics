@@ -19,7 +19,7 @@ let selectedEnvironment = 'ALL';
 let battingSort = { col: 'runs', asc: false };
 let bowlingSort = { col: 'wickets', asc: false };
 let mvpSort = { col: 'mvpPoints', asc: false };
-let awardsSort = { col: 'total', asc: false };
+let awardsSort = { col: 'mvpPoints', asc: false };
 
 // Club MVP Formula Constants
 const MVP_WEIGHTS = {
@@ -126,7 +126,7 @@ function getMatchCrcAwards(match) {
       economy: econ,
       economyNum: parseFloat(econ)
     };
-  }).sort((a, b) => b.wickets - a.wickets || a.runs - b.runs || a.economyNum - b.economyNum || b.maidens - a.maidens || b.dots - a.dots);
+  }).sort((a, b) => b.wickets - a.wickets || a.runs - b.runs || b.dots - a.dots || a.economyNum - b.economyNum || b.maidens - a.maidens);
 
   // 3. Top CRC Fielders (catches, run-outs, stumpings in opponent innings)
   const fieldingMap = {};
@@ -351,21 +351,23 @@ function toggleMobileMenu() {
   if (!menu) return;
   const isHidden = menu.classList.contains('hidden');
   menu.classList.toggle('hidden', !isHidden);
+  document.body.style.overflow = isHidden ? 'hidden' : '';
   if (icon) {
     icon.setAttribute('data-lucide', isHidden ? 'x' : 'menu');
-    if (window.lucide) window.lucide.createIcons();
   }
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function selectMobileTab(tabName) {
   switchTab(tabName);
   const menu = document.getElementById('mobile-nav-menu');
   if (menu) menu.classList.add('hidden');
+  document.body.style.overflow = '';
   const icon = document.getElementById('mobile-menu-icon');
   if (icon) {
     icon.setAttribute('data-lucide', 'menu');
-    if (window.lucide) window.lucide.createIcons();
   }
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function parseTimeToMinutes(t) {
@@ -579,7 +581,7 @@ function renderTournamentsTab() {
           <p class="text-xs text-slate-400">Venue: Mallow GAA, Cork • Result: Semi-Finalists 🎖️</p>
         </div>
         <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-          Semi-Finals Reached
+          Semi-Finals
         </span>
       </div>
 
@@ -611,7 +613,7 @@ function renderTournamentsTab() {
         </div>
         <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
           <span class="text-[11px] font-semibold text-slate-400 block mb-1">Top Wicket Takers</span>
-          <div class="text-sm font-bold text-purple-400">Davison (4 wkts) • Savio (3 wkts) • Joyvin (2 wkts)</div>
+          <div class="text-sm font-bold text-purple-400">Davison (3 wkts) • Savio (3 wkts) • Joyvin (2 wkts)</div>
         </div>
         <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
           <span class="text-[11px] font-semibold text-slate-400 block mb-1">Player of the Match Awards</span>
@@ -652,7 +654,7 @@ function renderTournamentsTab() {
           <p class="text-xs text-slate-400">Venue: Nemo Rangers, Cork • Stage: Group B</p>
         </div>
         <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-          Group Stage Completed
+          Group Stage
         </span>
       </div>
 
@@ -1232,16 +1234,7 @@ function renderSelectedMatchDetail() {
   const oppInnings = match.innings.find(i => !isCrcTeam(i));
   const isWin = match.outcome === 'WIN';
   const crcPotm = getCrcPotm(match);
-
-  // Top Batter & Top Bowler strictly for CRC (User Request!)
-  const crcTopBatter = [...(crcInnings?.batting || [])]
-    .map(b => ({ ...b, player: normalizePlayerName(b.player) }))
-    .sort((a, b) => b.runs - a.runs || b.balls - a.balls)[0];
-
-  // Opponent was batting when CRC bowled, so CRC bowling figures are in oppInnings.bowling
-  const crcTopBowler = [...(oppInnings?.bowling || [])]
-    .map(bw => ({ ...bw, bowler: normalizePlayerName(bw.bowler) }))
-    .sort((a, b) => b.wickets - a.wickets || a.runs - b.runs)[0];
+  const awards = getMatchCrcAwards(match);
 
   container.innerHTML = `
     <!-- Top Action Bar with Back Button & Sub-Tabs AT THE VERY TOP (Sticky!) -->
@@ -1331,36 +1324,53 @@ function renderSelectedMatchDetail() {
         <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
           <i data-lucide="star" class="w-4 h-4 text-amber-400"></i> Cork Royal Challengers Match Performers
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          ${crcTopBatter ? `
-            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block mb-0.5">Top CRC Batter</span>
-              <div class="font-bold text-white text-sm">${crcTopBatter.player}</div>
-              <div class="font-mono text-amber-400 text-xs">${crcTopBatter.runs} runs (${crcTopBatter.balls} balls, ${crcTopBatter.sixes}x6)</div>
-            </div>
-          ` : ''}
-
-          ${crcTopBowler ? `
-            <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl">
-              <span class="text-[10px] text-slate-400 uppercase font-semibold block mb-0.5">Top CRC Bowler</span>
-              <div class="font-bold text-white text-sm">${crcTopBowler.bowler}</div>
-              <div class="font-mono text-purple-400 text-xs">${crcTopBowler.wickets}/${crcTopBowler.runs} (${crcTopBowler.overs} ov)</div>
-            </div>
-          ` : ''}
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 ${crcPotm ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3">
           ${crcPotm ? `
             <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-              <span class="text-[10px] text-amber-300 uppercase font-semibold block mb-0.5">Player of the Match</span>
-              <div class="font-bold text-amber-300 text-sm flex items-center gap-1">
-                <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i> ${crcPotm}
+              <span class="text-[10px] text-amber-300 uppercase font-bold block mb-0.5">🏆 Player of the Match</span>
+              <div class="font-bold text-amber-300 text-sm flex items-center gap-1.5">
+                <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                <span class="cursor-pointer hover:underline" onclick="openPlayerProfileByName('${crcPotm}')">${crcPotm}</span>
               </div>
-              <div class="text-[11px] text-slate-300">Awarded for outstanding impact</div>
+              <div class="text-[11px] text-slate-300 mt-0.5">Official match award winner</div>
             </div>
-          ` : `
-            <div class="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex items-center">
-              <span class="text-xs text-slate-400">Toss: ${match.toss}</span>
+          ` : ''}
+
+          ${awards.matchMvpWinner ? `
+            <div class="p-3 bg-slate-950/70 border border-red-500/30 rounded-xl">
+              <span class="text-[10px] text-red-400 uppercase font-bold block mb-0.5">⭐ CRC Match MVP</span>
+              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 truncate" onclick="openPlayerProfileByName('${awards.matchMvpWinner.name}')">
+                ${awards.matchMvpWinner.name}
+              </div>
+              <div class="font-mono text-red-300 text-xs font-bold mt-0.5">
+                ${awards.matchMvpWinner.totalPts} MVP Points
+              </div>
             </div>
-          `}
+          ` : ''}
+
+          ${awards.topBatterWinner ? `
+            <div class="p-3 bg-slate-950/70 border border-amber-500/30 rounded-xl">
+              <span class="text-[10px] text-amber-400 uppercase font-bold block mb-0.5">🏏 Top CRC Batter</span>
+              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 truncate" onclick="openPlayerProfileByName('${awards.topBatterWinner.name}')">
+                ${awards.topBatterWinner.name}
+              </div>
+              <div class="font-mono text-amber-400 text-xs mt-0.5">
+                ${awards.topBatterWinner.runs} runs (${awards.topBatterWinner.balls}b, ${awards.topBatterWinner.sixes}x6)
+              </div>
+            </div>
+          ` : ''}
+
+          ${awards.topBowlerWinner ? `
+            <div class="p-3 bg-slate-950/70 border border-purple-500/30 rounded-xl">
+              <span class="text-[10px] text-purple-400 uppercase font-bold block mb-0.5">🎯 Top CRC Bowler</span>
+              <div class="font-bold text-white text-sm">
+                ${awards.topBowlerWinner.name}
+              </div>
+              <div class="font-mono text-purple-400 text-xs mt-0.5">
+                ${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs} (${awards.topBowlerWinner.overs} ov)
+              </div>
+            </div>
+          ` : ''}
         </div>
       </div>
 
@@ -1483,15 +1493,12 @@ function renderMatchAwardsSubTab(match) {
   const renderPodiumItem = (place, name, mainStat, subStat, highlightColor = 'amber', isJoint = false) => {
     let medal = '🥇';
     let ringColor = 'border-amber-500/50 bg-amber-500/10';
-    let badgeText = isJoint ? '1st Place (Joint)' : '1st Place';
     if (place === 2) {
       medal = '🥈';
       ringColor = 'border-slate-700 bg-slate-800/40';
-      badgeText = '2nd Place';
     } else if (place === 3) {
       medal = '🥉';
       ringColor = 'border-amber-800/50 bg-amber-900/20';
-      badgeText = '3rd Place';
     }
 
     return `
@@ -1500,10 +1507,9 @@ function renderMatchAwardsSubTab(match) {
           <span class="text-xl shrink-0">${medal}</span>
           <div class="min-w-0">
             <div class="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5 flex-wrap">
-              <span class="truncate">${name}</span>
+              <span>${name}</span>
               ${place === 1 ? `<span class="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/30 shrink-0">${isJoint ? 'JOINT WINNER' : 'WINNER'}</span>` : ''}
             </div>
-            <span class="text-[10px] text-slate-400 block">${badgeText}</span>
           </div>
         </div>
         <div class="text-right shrink-0">
@@ -2059,11 +2065,11 @@ function renderLeaderboardTab() {
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
         </td>
+        <td class="py-3 px-3 text-right font-mono font-black text-amber-400 text-sm">${p.mvpPoints}</td>
+        <td class="py-3 px-3 text-right text-amber-300 font-mono font-semibold">${p.potmCount}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.runs}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.wickets}</td>
-        <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.totalFielding}</td>
-        <td class="py-3 px-3 text-right text-amber-400 font-mono font-semibold">${p.potmCount}</td>
-        <td class="py-3 px-4 text-right font-mono font-black text-amber-400 text-sm">${p.mvpPoints}</td>
+        <td class="py-3 px-4 text-right text-slate-300 font-mono">${p.totalFielding}</td>
       </tr>
     `).join('');
   }
@@ -2071,10 +2077,20 @@ function renderLeaderboardTab() {
   // 4. Match Awards & Honors Leaderboard
   const awardsList = [...playerList].filter(p => (p.awards?.total || 0) > 0 || p.matches > 0);
   awardsList.sort((a, b) => {
-    let valA = awardsSort.col === 'name' ? a.name : (awardsSort.col === 'total' ? a.awards.total : a.awards[awardsSort.col]);
-    let valB = awardsSort.col === 'name' ? b.name : (awardsSort.col === 'total' ? b.awards.total : b.awards[awardsSort.col]);
+    let valA, valB;
+    if (awardsSort.col === 'name') {
+      valA = a.name; valB = b.name;
+    } else if (awardsSort.col === 'mvpPoints') {
+      valA = a.mvpPoints; valB = b.mvpPoints;
+    } else if (awardsSort.col === 'total') {
+      valA = a.awards.total; valB = b.awards.total;
+    } else {
+      valA = a.awards[awardsSort.col]; valB = b.awards[awardsSort.col];
+    }
     if (typeof valA === 'string') return awardsSort.asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-    return awardsSort.asc ? valA - valB : valB - valA;
+    return awardsSort.asc
+      ? (valA - valB || a.awards.total - b.awards.total || a.mvpPoints - b.mvpPoints)
+      : (valB - valA || b.awards.total - a.awards.total || b.mvpPoints - a.mvpPoints);
   });
 
   const awardsTbody = document.getElementById('leaderboard-awards-body');
@@ -2087,6 +2103,12 @@ function renderLeaderboardTab() {
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
         </td>
+        <td class="py-3 px-3 text-right font-mono font-bold text-amber-400 text-sm">
+          ${p.mvpPoints}
+        </td>
+        <td class="py-3 px-3 text-right font-mono font-black text-white text-sm">
+          ${p.awards.total}
+        </td>
         <td class="py-3 px-3 text-right font-mono ${p.awards.matchMvp > 0 ? 'text-amber-300 font-bold' : 'text-slate-500'}">
           ${p.awards.matchMvp}
         </td>
@@ -2096,11 +2118,8 @@ function renderLeaderboardTab() {
         <td class="py-3 px-3 text-right font-mono ${p.awards.topBowler > 0 ? 'text-purple-400 font-bold' : 'text-slate-500'}">
           ${p.awards.topBowler}
         </td>
-        <td class="py-3 px-3 text-right font-mono ${p.awards.topFielder > 0 ? 'text-sky-400 font-bold' : 'text-slate-500'}">
+        <td class="py-3 px-4 text-right font-mono ${p.awards.topFielder > 0 ? 'text-sky-400 font-bold' : 'text-slate-500'}">
           ${p.awards.topFielder}
-        </td>
-        <td class="py-3 px-4 text-right font-mono font-black text-amber-400 text-sm">
-          ${p.awards.total}
         </td>
       </tr>
     `).join('');
@@ -2231,10 +2250,11 @@ function openPlayerProfileByName(name) {
       if (!isParticipant) return '';
 
       const awards = getMatchCrcAwards(match);
+      const isPotm = getCrcPotm(match) === p.name;
+      const isMatchMvp = (awards.matchMvpWinners || []).some(w => w.name === p.name) || awards.matchMvpWinner?.name === p.name;
       const isTopBatter = (awards.topBatterWinners || []).some(w => w.name === p.name) || awards.topBatterWinner?.name === p.name;
       const isTopBowler = (awards.topBowlerWinners || []).some(w => w.name === p.name) || awards.topBowlerWinner?.name === p.name;
       const isTopFielder = (awards.topFielderWinners || []).some(w => w.name === p.name) || awards.topFielderWinner?.name === p.name;
-      const isMatchMvp = (awards.matchMvpWinners || []).some(w => w.name === p.name) || awards.matchMvpWinner?.name === p.name;
 
       return `
         <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5 text-xs">
@@ -2248,12 +2268,13 @@ function openPlayerProfileByName(name) {
               ${bowlRecord ? `<div class="font-mono text-sky-400">Bowl: ${bowlRecord.overs} ov, ${bowlRecord.wickets}-${bowlRecord.runs}</div>` : ''}
             </div>
           </div>
-          ${(isTopBatter || isTopBowler || isTopFielder || isMatchMvp) ? `
+          ${(isPotm || isMatchMvp || isTopBatter || isTopBowler || isTopFielder) ? `
             <div class="flex flex-wrap gap-1 pt-1.5 border-t border-slate-800/80">
+              ${isPotm ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/40">🏆 POTM</span>` : ''}
+              ${isMatchMvp ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-300 font-black border border-red-500/30">⭐ Match MVP</span>` : ''}
               ${isTopBatter ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">🏏 Top Batter</span>` : ''}
               ${isTopBowler ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">🎯 Top Bowler</span>` : ''}
               ${isTopFielder ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 font-bold border border-sky-500/30">🧤 Top Fielder</span>` : ''}
-              ${isMatchMvp ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-300 font-black border border-red-500/30">⭐ Match MVP</span>` : ''}
             </div>
           ` : ''}
         </div>
