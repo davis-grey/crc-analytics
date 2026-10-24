@@ -435,7 +435,10 @@ function switchTab(tabName) {
     if (btn.classList.contains('tab-btn-mobile')) {
       btn.classList.toggle('text-amber-400', isActive);
       btn.classList.toggle('bg-amber-500/10', isActive);
+      btn.classList.toggle('border-amber-500/30', isActive);
       btn.classList.toggle('text-slate-300', !isActive);
+      btn.classList.toggle('bg-slate-900', !isActive);
+      btn.classList.toggle('border-slate-800', !isActive);
     }
   });
 
