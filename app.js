@@ -81,7 +81,11 @@ function getCrcPotm(match) {
 
 function getMatchCrcAwards(match) {
   if (!match || !match.innings) {
-    return { batters: [], bowlers: [], fielders: [], mvps: [], topBatterWinner: null, topBowlerWinner: null, topFielderWinner: null, matchMvpWinner: null };
+    return {
+      batters: [], bowlers: [], fielders: [], mvps: [],
+      topBatterWinner: null, topBowlerWinner: null, topFielderWinner: null, matchMvpWinner: null,
+      topBatterWinners: [], topBowlerWinners: [], topFielderWinners: [], matchMvpWinners: []
+    };
   }
 
   const crcInn = match.innings.find(i => isCrcTeam(i));
@@ -202,15 +206,66 @@ function getMatchCrcAwards(match) {
   });
   const mvps = Object.values(playerMap).sort((a, b) => b.totalPts - a.totalPts || b.bowlPts - a.bowlPts || b.batPts - a.batPts);
 
+  // Tied / Joint Winners Logic
+  // Bowlers: share top wickets and least runs conceded
+  let topBowlerWinners = [];
+  if (bowlers.length > 0 && bowlers[0].wickets > 0) {
+    const topW = bowlers[0].wickets;
+    const topR = bowlers[0].runs;
+    topBowlerWinners = bowlers.filter(b => b.wickets === topW && b.runs === topR);
+  } else if (bowlers.length > 0) {
+    const topR = bowlers[0].runs;
+    topBowlerWinners = bowlers.filter(b => b.wickets === 0 && b.runs === topR);
+  }
+
+  // Fielders: share top dismissals (> 0)
+  let topFielderWinners = [];
+  if (fielders.length > 0 && fielders[0].total > 0) {
+    const topTot = fielders[0].total;
+    topFielderWinners = fielders.filter(f => f.total === topTot);
+  }
+
+  // Batters: share top runs (> 0)
+  let topBatterWinners = [];
+  if (batters.length > 0 && batters[0].runs > 0) {
+    const topR = batters[0].runs;
+    topBatterWinners = batters.filter(b => b.runs === topR);
+  } else if (batters.length > 0) {
+    topBatterWinners = [batters[0]];
+  }
+
+  // MVPs: share top points (> 0)
+  let matchMvpWinners = [];
+  if (mvps.length > 0 && mvps[0].totalPts > 0) {
+    const topPts = mvps[0].totalPts;
+    matchMvpWinners = mvps.filter(m => m.totalPts === topPts);
+  }
+
+  const formatWinner = (winners) => {
+    if (!winners || winners.length === 0) return null;
+    if (winners.length === 1) return winners[0];
+    const jointName = winners.map(w => w.name).join(' & ') + ' (Joint Winners)';
+    return { ...winners[0], name: jointName, isJoint: true, winners };
+  };
+
+  const topBowlerWinner = formatWinner(topBowlerWinners);
+  const topFielderWinner = formatWinner(topFielderWinners);
+  const topBatterWinner = formatWinner(topBatterWinners);
+  const matchMvpWinner = formatWinner(matchMvpWinners);
+
   return {
     batters,
     bowlers,
     fielders,
     mvps,
-    topBatterWinner: batters[0] || null,
-    topBowlerWinner: bowlers[0] || null,
-    topFielderWinner: (fielders[0] && fielders[0].total > 0) ? fielders[0] : null,
-    matchMvpWinner: mvps[0] || null
+    topBatterWinner,
+    topBowlerWinner,
+    topFielderWinner,
+    matchMvpWinner,
+    topBatterWinners,
+    topBowlerWinners,
+    topFielderWinners,
+    matchMvpWinners
   };
 }
 
@@ -240,7 +295,8 @@ async function loadInitialData() {
     localStorage.removeItem('crc_matches_override');
   } catch (err) {}
 
-  selectedMatchId = matchesData[0]?.id || null;
+  const sorted = getFilteredMatches();
+  selectedMatchId = sorted[0]?.id || matchesData[0]?.id || null;
 }
 
 function setupEventListeners() {
@@ -289,11 +345,74 @@ function updateActiveTournamentPill() {
   }
 }
 
+function toggleMobileMenu() {
+  const menu = document.getElementById('mobile-nav-menu');
+  const icon = document.getElementById('mobile-menu-icon');
+  if (!menu) return;
+  const isHidden = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden', !isHidden);
+  if (icon) {
+    icon.setAttribute('data-lucide', isHidden ? 'x' : 'menu');
+    if (window.lucide) window.lucide.createIcons();
+  }
+}
+
+function selectMobileTab(tabName) {
+  switchTab(tabName);
+  const menu = document.getElementById('mobile-nav-menu');
+  if (menu) menu.classList.add('hidden');
+  const icon = document.getElementById('mobile-menu-icon');
+  if (icon) {
+    icon.setAttribute('data-lucide', 'menu');
+    if (window.lucide) window.lucide.createIcons();
+  }
+}
+
+function parseTimeToMinutes(t) {
+  if (!t) return 0;
+  const m = t.match(/(\d+):(\d+)\s*(AM|PM)?/i);
+  if (!m) return 0;
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const period = (m[3] || '').toUpperCase();
+  if (period === 'PM' && h < 12) h += 12;
+  if (period === 'AM' && h === 12) h = 0;
+  return (h * 60) + min;
+}
+
 function getFilteredMatches() {
-  return matchesData.filter(m => {
+  const filtered = matchesData.filter(m => {
     const matchTourney = (selectedTournament === 'ALL') || (m.tournamentId === selectedTournament);
     const matchEnv = (selectedEnvironment === 'ALL') || (m.environment === selectedEnvironment);
     return matchTourney && matchEnv;
+  });
+
+  // Sort latest matches first! (Date desc, then stage priority desc, then time desc)
+  const stageWeight = {
+    'Final': 100,
+    'Semi-Final': 90,
+    'Quarter-Final': 80,
+    'Pre-Quarter Final': 70,
+    'Pre-Quarters': 70,
+    'Pre-Quarter': 70,
+    'Group Stage': 50,
+    'Group A': 50,
+    'Group B': 50,
+    'Warm-up Round': 10,
+    'Warm-up': 10
+  };
+
+  return filtered.sort((a, b) => {
+    if (a.date !== b.date) {
+      return (b.date || '').localeCompare(a.date || '');
+    }
+    const sa = stageWeight[a.stage] || 50;
+    const sb = stageWeight[b.stage] || 50;
+    if (sb !== sa) return sb - sa;
+    const ta = parseTimeToMinutes(a.time);
+    const tb = parseTimeToMinutes(b.time);
+    if (tb !== ta) return tb - ta;
+    return (b.id || '').localeCompare(a.id || '');
   });
 }
 
@@ -304,11 +423,18 @@ function switchTab(tabName) {
   currentTab = tabName;
   document.querySelectorAll('[data-tab-target]').forEach(btn => {
     const isActive = btn.getAttribute('data-tab-target') === tabName;
-    btn.classList.toggle('active-tab', isActive);
-    btn.classList.toggle('text-amber-400', isActive);
-    btn.classList.toggle('border-amber-400', isActive);
-    btn.classList.toggle('text-slate-400', !isActive);
-    btn.classList.toggle('border-transparent', !isActive);
+    if (btn.classList.contains('tab-btn')) {
+      btn.classList.toggle('active-tab', isActive);
+      btn.classList.toggle('text-amber-400', isActive);
+      btn.classList.toggle('border-amber-400', isActive);
+      btn.classList.toggle('text-slate-400', !isActive);
+      btn.classList.toggle('border-transparent', !isActive);
+    }
+    if (btn.classList.contains('tab-btn-mobile')) {
+      btn.classList.toggle('text-amber-400', isActive);
+      btn.classList.toggle('bg-amber-500/10', isActive);
+      btn.classList.toggle('text-slate-300', !isActive);
+    }
   });
 
   document.querySelectorAll('.tab-content-panel').forEach(panel => {
@@ -438,12 +564,16 @@ function renderTournamentsTab() {
     <div class="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
       <div class="flex flex-wrap justify-between items-start gap-2 mb-4 pb-3 border-b border-slate-800">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 leading-none">
               Season 2026-27 • Tournament 2
             </span>
-            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Indoor</span>
-            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Turf Wicket</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60 leading-none">
+              Indoor
+            </span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60 leading-none">
+              Turf Wicket
+            </span>
           </div>
           <h3 class="text-xl font-bold text-white">CSK Indoor Tournament Season 3</h3>
           <p class="text-xs text-slate-400">Venue: Mallow GAA, Cork • Result: Semi-Finalists 🎖️</p>
@@ -473,19 +603,22 @@ function renderTournamentsTab() {
         </div>
       </div>
 
-      <!-- Highlights & Awards -->
-      <div class="space-y-2 mb-6 text-xs text-slate-300">
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">Top Run Scorer:</span>
-          <strong class="text-white">Jenson (73 runs, HS 37, 8 sixes)</strong>
+      <!-- Highlights & Awards (Spacious Card Layout) -->
+      <div class="space-y-2.5 mb-6 text-xs">
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Top Run Scorer</span>
+          <div class="text-sm font-bold text-white">Jenson (73 runs, HS 37, 8 sixes)</div>
         </div>
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">Top Wicket Takers:</span>
-          <strong class="text-purple-400">Davison (4 wkts) • Savio (3 wkts) • Joyvin (2 wkts)</strong>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Top Wicket Takers</span>
+          <div class="text-sm font-bold text-purple-400">Davison (4 wkts) • Savio (3 wkts) • Joyvin (2 wkts)</div>
         </div>
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">CRC Player of the Match Awards:</span>
-          <strong class="text-amber-300">Davison (Pre-QF vs BD Tigers & QF vs Cork Indians) 🌟🌟</strong>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Player of the Match Awards</span>
+          <div class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+            <span>Davison (Pre-QF vs BD Tigers & QF vs Cork Indians)</span>
+            <span>🌟🌟</span>
+          </div>
         </div>
       </div>
 
@@ -504,12 +637,16 @@ function renderTournamentsTab() {
     <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
       <div class="flex flex-wrap justify-between items-start gap-2 mb-4 pb-3 border-b border-slate-800">
         <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 leading-none">
               Season 2026-27 • First Tournament
             </span>
-            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Indoor</span>
-            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Turf Wicket</span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60 leading-none">
+              Indoor
+            </span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60 leading-none">
+              Turf Wicket
+            </span>
           </div>
           <h3 class="text-xl font-bold text-white">Nemo Cricket Club Tournament 2026 S2</h3>
           <p class="text-xs text-slate-400">Venue: Nemo Rangers, Cork • Stage: Group B</p>
@@ -539,19 +676,21 @@ function renderTournamentsTab() {
         </div>
       </div>
 
-      <!-- Highlights & Awards -->
-      <div class="space-y-2 mb-6 text-xs text-slate-300">
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">Top Run Scorer:</span>
-          <strong class="text-white">Yash (11 runs, HS 10*)</strong>
+      <!-- Highlights & Awards (Spacious Card Layout) -->
+      <div class="space-y-2.5 mb-6 text-xs">
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Top Run Scorer</span>
+          <div class="text-sm font-bold text-white">Yash (11 runs, HS 10*)</div>
         </div>
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">Top Wicket Takers:</span>
-          <strong class="text-purple-400">Savio, Davison, Jenson (2 wkts each)</strong>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Top Wicket Takers</span>
+          <div class="text-sm font-bold text-purple-400">Savio, Davison, Jenson (2 wkts each)</div>
         </div>
-        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
-          <span class="text-slate-400">CRC Player of the Match Awards:</span>
-          <strong class="text-amber-300">Davison (Match 1) • Jenson (Match 3)</strong>
+        <div class="bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl">
+          <span class="text-[11px] font-semibold text-slate-400 block mb-1">Player of the Match Awards</span>
+          <div class="text-sm font-bold text-amber-300">
+            Davison (Match 1) • Jenson (Match 3)
+          </div>
         </div>
       </div>
 
@@ -647,32 +786,32 @@ function calculateSeasonStats() {
       stats[crcPotm].mvpPoints += MVP_WEIGHTS.POTM_BONUS;
     }
 
-    // Tally CRC Match Awards for this match
+    // Tally CRC Match Awards for this match (crediting all tied/joint winners)
     const matchAwards = getMatchCrcAwards(match);
-    if (matchAwards.topBatterWinner) {
-      const n = matchAwards.topBatterWinner.name;
+    (matchAwards.topBatterWinners || (matchAwards.topBatterWinner ? [matchAwards.topBatterWinner] : [])).forEach(w => {
+      const n = w.name;
       if (!stats[n]) stats[n] = createEmptyPlayerStat(n);
       stats[n].awards.topBatter += 1;
       stats[n].awards.total += 1;
-    }
-    if (matchAwards.topBowlerWinner) {
-      const n = matchAwards.topBowlerWinner.name;
+    });
+    (matchAwards.topBowlerWinners || (matchAwards.topBowlerWinner ? [matchAwards.topBowlerWinner] : [])).forEach(w => {
+      const n = w.name;
       if (!stats[n]) stats[n] = createEmptyPlayerStat(n);
       stats[n].awards.topBowler += 1;
       stats[n].awards.total += 1;
-    }
-    if (matchAwards.topFielderWinner) {
-      const n = matchAwards.topFielderWinner.name;
+    });
+    (matchAwards.topFielderWinners || (matchAwards.topFielderWinner ? [matchAwards.topFielderWinner] : [])).forEach(w => {
+      const n = w.name;
       if (!stats[n]) stats[n] = createEmptyPlayerStat(n);
       stats[n].awards.topFielder += 1;
       stats[n].awards.total += 1;
-    }
-    if (matchAwards.matchMvpWinner) {
-      const n = matchAwards.matchMvpWinner.name;
+    });
+    (matchAwards.matchMvpWinners || (matchAwards.matchMvpWinner ? [matchAwards.matchMvpWinner] : [])).forEach(w => {
+      const n = w.name;
       if (!stats[n]) stats[n] = createEmptyPlayerStat(n);
       stats[n].awards.matchMvp += 1;
       stats[n].awards.total += 1;
-    }
+    });
 
     // Determine participating CRC players for this match (counted ONCE per match)
     const matchParticipants = new Set();
@@ -948,44 +1087,71 @@ function renderMatchesList() {
 
     return `
       <div onclick="openMatchScorecard('${match.id}')"
-           class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group">
+           class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl group flex flex-col justify-between">
         
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-3">
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span class="font-semibold text-slate-300">${match.matchTitle}</span>
-            <span class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-300 rounded border border-amber-500/30">${match.environment || 'Indoor'}</span>
-            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">${match.pitchType || 'Turf Wicket'}</span>
-          </div>
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-            isWin ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-          }">
-            ${isWin ? 'WON' : 'LOST'}
-          </span>
-        </div>
-
-        <div class="space-y-2 mb-4 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800/80">
-          <div class="flex justify-between items-center text-sm font-semibold">
-            <span class="text-white group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              ${crcInnings?.team || 'Cork Royal Challengers'}
+        <div>
+          <!-- Tournament & Match Header -->
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div class="space-y-1 min-w-0">
+              <span class="text-[11px] font-bold text-amber-400 block truncate uppercase tracking-wider">
+                ${match.tournament}
+              </span>
+              <h3 class="font-bold text-white text-sm group-hover:text-amber-400 transition-colors truncate" title="${match.matchTitle}">
+                ${match.matchTitle}
+              </h3>
+              <div class="flex items-center gap-1.5 pt-0.5">
+                <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-300 rounded border border-amber-500/30 leading-none">
+                  ${match.environment || 'Indoor'}
+                </span>
+                <span class="inline-flex items-center px-2 py-0.5 text-[10px] font-medium bg-slate-800 text-slate-300 rounded border border-slate-700/60 leading-none">
+                  ${match.pitchType || 'Turf Wicket'}
+                </span>
+              </div>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+              isWin ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+            }">
+              ${isWin ? 'WON' : 'LOST'}
             </span>
-            <span class="text-amber-400 font-mono font-bold">${crcInnings?.runs}/${crcInnings?.wickets} <span class="text-xs text-slate-400 font-normal">(${crcInnings?.overs} ov)</span></span>
           </div>
-          <div class="flex justify-between items-center text-sm font-semibold">
-            <span class="text-slate-300">${oppInnings?.team || 'Opponent'}</span>
-            <span class="text-slate-300 font-mono font-bold">${oppInnings?.runs}/${oppInnings?.wickets} <span class="text-xs text-slate-400 font-normal">(${oppInnings?.overs} ov)</span></span>
+
+          <!-- Score Row with Monospace Tabular Right-Aligned Numbers -->
+          <div class="space-y-2 mb-4 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+            <div class="flex items-center justify-between text-sm font-semibold gap-3">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                <span class="text-white truncate group-hover:text-amber-400 transition-colors">
+                  ${crcInnings?.team || 'Cork Royal Challengers'}
+                </span>
+              </div>
+              <div class="text-right font-mono shrink-0 whitespace-nowrap">
+                <span class="text-amber-400 font-bold text-sm">${crcInnings?.runs}/${crcInnings?.wickets}</span>
+                <span class="text-xs text-slate-400 font-normal ml-1">(${crcInnings?.overs} ov)</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between text-sm font-semibold gap-3">
+              <div class="flex items-center gap-2 min-w-0 pl-4">
+                <span class="text-slate-300 truncate">
+                  ${oppInnings?.team || 'Opponent'}
+                </span>
+              </div>
+              <div class="text-right font-mono shrink-0 whitespace-nowrap">
+                <span class="text-slate-300 font-bold text-sm">${oppInnings?.runs}/${oppInnings?.wickets}</span>
+                <span class="text-xs text-slate-400 font-normal ml-1">(${oppInnings?.overs} ov)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-400 mb-3 space-y-1">
+            <div class="truncate"><strong class="text-slate-300 font-semibold">Result:</strong> ${match.result}</div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+              <span class="truncate mr-2">${match.venue}</span>
+              <span class="shrink-0 font-mono">${match.date} • ${match.time}</span>
+            </div>
           </div>
         </div>
 
-        <div class="text-xs text-slate-400 mb-3 space-y-1">
-          <div><strong class="text-slate-300 font-semibold">Result:</strong> ${match.result}</div>
-          <div class="flex items-center justify-between text-[11px] text-slate-400">
-            <span>${match.venue}</span>
-            <span>${match.date} • ${match.time}</span>
-          </div>
-        </div>
-
-        <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <div class="pt-3 border-t border-slate-800 flex justify-between items-center mt-auto">
           ${crcPotm ? `<span class="text-[11px] text-amber-400 font-medium flex items-center gap-1"><i data-lucide="trophy" class="w-3.5 h-3.5"></i> POTM: ${crcPotm}</span>` : `<span></span>`}
           <span class="text-xs font-bold text-slate-300 group-hover:text-amber-400 flex items-center gap-1 transition-colors">
             View Details <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -1078,8 +1244,8 @@ function renderSelectedMatchDetail() {
     .sort((a, b) => b.wickets - a.wickets || a.runs - b.runs)[0];
 
   container.innerHTML = `
-    <!-- Top Action Bar with Back Button & Sub-Tabs AT THE VERY TOP -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-3 border-b border-slate-800 max-w-full">
+    <!-- Top Action Bar with Back Button & Sub-Tabs AT THE VERY TOP (Sticky!) -->
+    <div class="sticky top-[64px] md:top-[105px] z-30 bg-slate-950/95 backdrop-blur-md pt-2 pb-3 mb-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 max-w-full">
       <div class="flex items-center gap-2.5 shrink-0">
         <button onclick="backToMatchesList()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-semibold transition-all">
           <i data-lucide="arrow-left" class="w-4 h-4 text-amber-400"></i> Back to Matches
@@ -1231,11 +1397,11 @@ function renderSelectedMatchDetail() {
       </div>
     </div>
 
-    <!-- SUB-TAB 3: BALL-BY-BALL (PERFECTLY ALIGNED OVER TIMELINE) -->
+    <!-- SUB-TAB 3: BALL-BY-BALL (CLEAN OVER CARDS - NO HORIZONTAL SCROLL) -->
     <div id="match-panel-balls" class="match-subtab-panel ${currentMatchSubTab === 'balls' ? '' : 'hidden'} space-y-6">
       ${match.innings.map(inn => `
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg">
-          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+          <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
             <h4 class="font-bold text-white text-sm flex items-center gap-2">
               <i data-lucide="play-circle" class="w-4 h-4 text-amber-400"></i>
               ${inn.team} - Over Progression
@@ -1243,33 +1409,25 @@ function renderSelectedMatchDetail() {
             <span class="text-xs font-mono font-bold text-slate-300">${inn.runs}/${inn.wickets} (${inn.overs} ov)</span>
           </div>
 
-          <div class="overflow-x-auto custom-scrollbar">
-            <div class="min-w-[580px] space-y-2">
-              <!-- Header Row for Perfect Alignment -->
-              <div class="flex items-center px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-950/40 rounded-lg border border-slate-800/60">
-                <div class="w-16 shrink-0">Over</div>
-                <div class="w-32 shrink-0">Bowler</div>
-                <div class="flex-1 px-3">Deliveries</div>
-                <div class="w-36 shrink-0 text-right">Runs (Score)</div>
-              </div>
-              <!-- Over Rows -->
-              ${(inn.overProgression || []).map(ov => `
-                <div class="flex items-center px-3 py-2 bg-slate-950/70 border border-slate-800 rounded-xl hover:border-slate-700 transition-colors">
-                  <div class="w-16 shrink-0 font-mono font-bold text-amber-400 text-xs">Ov ${ov.over}</div>
-                  <div class="w-32 shrink-0 font-semibold text-slate-200 text-xs truncate" title="${normalizePlayerName(ov.bowler)}">
-                    ${normalizePlayerName(ov.bowler)}
+          <div class="space-y-3">
+            ${(inn.overProgression || []).map(ov => `
+              <div class="p-3 bg-slate-950/70 border border-slate-800/90 rounded-xl hover:border-slate-700 transition-colors">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2 pb-2 border-b border-slate-800/60">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono font-bold text-xs border border-amber-500/30">Ov ${ov.over}</span>
+                    <span class="font-bold text-white text-xs">${normalizePlayerName(ov.bowler)}</span>
                   </div>
-                  <div class="flex-1 flex items-center gap-1.5 px-3 overflow-x-auto custom-scrollbar">
-                    ${renderBallBadges(ov.balls)}
-                  </div>
-                  <div class="w-36 shrink-0 text-right font-mono text-xs">
-                    <span class="font-bold text-amber-400">${ov.runs}</span> <span class="text-slate-400 text-[11px]">runs</span>
-                    <span class="text-slate-600 mx-1.5">|</span>
-                    <span class="font-bold text-white">${ov.cumulativeRuns}/${ov.cumulativeWickets}</span>
+                  <div class="font-mono text-xs flex items-center gap-2">
+                    <span class="text-amber-400 font-bold">${ov.runs !== undefined ? ov.runs : (ov.runsConceded || 0)} runs</span>
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-300">Total: <strong class="text-white">${ov.cumulativeRuns !== undefined ? ov.cumulativeRuns : (ov.totalRuns || 0)}/${ov.cumulativeWickets !== undefined ? ov.cumulativeWickets : (ov.totalWickets || 0)}</strong></span>
                   </div>
                 </div>
-              `).join('')}
-            </div>
+                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  ${renderBallBadges(ov.balls)}
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>
       `).join('')}
@@ -1322,10 +1480,10 @@ function renderSelectedMatchDetail() {
 function renderMatchAwardsSubTab(match) {
   const awards = getMatchCrcAwards(match);
 
-  const renderPodiumItem = (place, name, mainStat, subStat, highlightColor = 'amber') => {
+  const renderPodiumItem = (place, name, mainStat, subStat, highlightColor = 'amber', isJoint = false) => {
     let medal = '🥇';
     let ringColor = 'border-amber-500/50 bg-amber-500/10';
-    let badgeText = '1st Place';
+    let badgeText = isJoint ? '1st Place (Joint)' : '1st Place';
     if (place === 2) {
       medal = '🥈';
       ringColor = 'border-slate-700 bg-slate-800/40';
@@ -1338,17 +1496,17 @@ function renderMatchAwardsSubTab(match) {
 
     return `
       <div class="flex items-center justify-between p-3 rounded-xl border ${ringColor} transition-colors">
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2.5 min-w-0 mr-2">
           <span class="text-xl shrink-0">${medal}</span>
-          <div>
-            <div class="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5">
-              <span>${name}</span>
-              ${place === 1 ? `<span class="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/30">WINNER</span>` : ''}
+          <div class="min-w-0">
+            <div class="font-bold text-white text-xs sm:text-sm flex items-center gap-1.5 flex-wrap">
+              <span class="truncate">${name}</span>
+              ${place === 1 ? `<span class="px-1.5 py-0.2 rounded text-[9px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/30 shrink-0">${isJoint ? 'JOINT WINNER' : 'WINNER'}</span>` : ''}
             </div>
             <span class="text-[10px] text-slate-400 block">${badgeText}</span>
           </div>
         </div>
-        <div class="text-right">
+        <div class="text-right shrink-0">
           <div class="font-mono font-bold text-xs sm:text-sm text-${highlightColor}-400">${mainStat}</div>
           <div class="text-[10px] text-slate-400 font-mono">${subStat}</div>
         </div>
@@ -1356,9 +1514,23 @@ function renderMatchAwardsSubTab(match) {
     `;
   };
 
+  const getPodiumRanking = (list, tieFn) => {
+    return list.slice(0, 3).map((item, idx, arr) => {
+      let place = idx + 1;
+      let isJoint = false;
+      if (idx === 0 && arr.length > 1 && tieFn(arr[0], arr[1])) {
+        isJoint = true;
+      } else if (idx === 1 && tieFn(arr[0], arr[1])) {
+        place = 1;
+        isJoint = true;
+      }
+      return { item, place, isJoint };
+    });
+  };
+
   return `
     <div class="space-y-6">
-      <!-- 1. Match Honors Spotlight Banner -->
+      <!-- 1. Match Honors Spotlight Banner (Match MVP First!) -->
       <div class="bg-gradient-to-r from-amber-950/60 via-slate-900 to-slate-900 border border-amber-500/40 rounded-2xl p-5 shadow-xl">
         <div class="flex flex-wrap justify-between items-center gap-2 mb-3 pb-2 border-b border-amber-500/20">
           <div class="flex items-center gap-2">
@@ -1374,10 +1546,19 @@ function renderMatchAwardsSubTab(match) {
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <!-- Match MVP Card (First!) -->
+          <div class="p-3 bg-slate-950/70 border border-red-500/30 rounded-xl">
+            <span class="text-[10px] text-red-400 font-bold uppercase tracking-wider block mb-1">⭐ Match MVP</span>
+            <div class="font-bold text-white text-sm truncate" title="${awards.matchMvpWinner ? awards.matchMvpWinner.name : 'N/A'}">${awards.matchMvpWinner ? awards.matchMvpWinner.name : 'N/A'}</div>
+            <div class="text-xs font-mono text-red-300 font-bold mt-0.5">
+              ${awards.matchMvpWinner ? `${awards.matchMvpWinner.totalPts} MVP Points` : '-'}
+            </div>
+          </div>
+
           <!-- Top Batter Card -->
           <div class="p-3 bg-slate-950/70 border border-amber-500/30 rounded-xl">
             <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block mb-1">🏏 Top Batter</span>
-            <div class="font-bold text-white text-sm truncate">${awards.topBatterWinner ? awards.topBatterWinner.name : 'N/A'}</div>
+            <div class="font-bold text-white text-sm truncate" title="${awards.topBatterWinner ? awards.topBatterWinner.name : 'N/A'}">${awards.topBatterWinner ? awards.topBatterWinner.name : 'N/A'}</div>
             <div class="text-xs font-mono text-amber-300 font-semibold mt-0.5">
               ${awards.topBatterWinner ? `${awards.topBatterWinner.runs} runs (${awards.topBatterWinner.balls}b)` : '-'}
             </div>
@@ -1386,7 +1567,7 @@ function renderMatchAwardsSubTab(match) {
           <!-- Top Bowler Card -->
           <div class="p-3 bg-slate-950/70 border border-purple-500/30 rounded-xl">
             <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block mb-1">🎯 Top Bowler</span>
-            <div class="font-bold text-white text-sm truncate">${awards.topBowlerWinner ? awards.topBowlerWinner.name : 'N/A'}</div>
+            <div class="font-bold text-white text-sm truncate" title="${awards.topBowlerWinner ? awards.topBowlerWinner.name : 'N/A'}">${awards.topBowlerWinner ? awards.topBowlerWinner.name : 'N/A'}</div>
             <div class="text-xs font-mono text-purple-300 font-semibold mt-0.5">
               ${awards.topBowlerWinner ? `${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs} (${awards.topBowlerWinner.overs} ov)` : '-'}
             </div>
@@ -1395,96 +1576,18 @@ function renderMatchAwardsSubTab(match) {
           <!-- Top Fielder Card -->
           <div class="p-3 bg-slate-950/70 border border-sky-500/30 rounded-xl">
             <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider block mb-1">🧤 Top Fielder</span>
-            <div class="font-bold text-white text-sm truncate">${awards.topFielderWinner ? awards.topFielderWinner.name : 'None'}</div>
+            <div class="font-bold text-white text-sm truncate" title="${awards.topFielderWinner ? awards.topFielderWinner.name : 'None'}">${awards.topFielderWinner ? awards.topFielderWinner.name : 'None'}</div>
             <div class="text-xs font-mono text-sky-300 font-semibold mt-0.5">
               ${awards.topFielderWinner ? `${awards.topFielderWinner.total} dis (${awards.topFielderWinner.catches}c, ${awards.topFielderWinner.runouts}ro)` : '0 dismissals'}
-            </div>
-          </div>
-
-          <!-- Match MVP Card -->
-          <div class="p-3 bg-slate-950/70 border border-red-500/30 rounded-xl">
-            <span class="text-[10px] text-red-400 font-bold uppercase tracking-wider block mb-1">⭐ Match MVP</span>
-            <div class="font-bold text-white text-sm truncate">${awards.matchMvpWinner ? awards.matchMvpWinner.name : 'N/A'}</div>
-            <div class="text-xs font-mono text-red-300 font-bold mt-0.5">
-              ${awards.matchMvpWinner ? `${awards.matchMvpWinner.totalPts} MVP Points` : '-'}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 2. Detailed Top 3 Rankings by Category Grid -->
+      <!-- 2. Detailed Top 3 Rankings by Category Grid (MVP Category First!) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        <!-- Category A: Top Batters (Top 3) -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-            <h4 class="font-bold text-white text-sm flex items-center gap-2">
-              <span class="text-base">🏏</span> Top CRC Batters (Top 3)
-            </h4>
-            <span class="text-[11px] text-slate-400">Ranked by Runs & SR</span>
-          </div>
-          <div class="space-y-2">
-            ${awards.batters.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No batting data recorded</div>' :
-              awards.batters.slice(0, 3).map((b, idx) =>
-                renderPodiumItem(
-                  idx + 1,
-                  b.name,
-                  `${b.runs} Runs (${b.balls}b)`,
-                  `SR ${b.sr} • ${b.sixes}x6, ${b.fours}x4 • ${b.isNotOut ? 'Not Out' : 'Out'}`,
-                  'amber'
-                )
-              ).join('')
-            }
-          </div>
-        </div>
-
-        <!-- Category B: Top Bowlers (Top 3) -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-            <h4 class="font-bold text-white text-sm flex items-center gap-2">
-              <span class="text-base">🎯</span> Top CRC Bowlers (Top 3)
-            </h4>
-            <span class="text-[11px] text-slate-400">Ranked by Wkts & Economy</span>
-          </div>
-          <div class="space-y-2">
-            ${awards.bowlers.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No bowling data recorded</div>' :
-              awards.bowlers.slice(0, 3).map((bw, idx) =>
-                renderPodiumItem(
-                  idx + 1,
-                  bw.name,
-                  `${bw.wickets}/${bw.runs} (${bw.overs} ov)`,
-                  `Econ ${bw.economy} • ${bw.maidens} Mdns • ${bw.dots} Dots`,
-                  'purple'
-                )
-              ).join('')
-            }
-          </div>
-        </div>
-
-        <!-- Category C: Top Fielders (Top 3) -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
-            <h4 class="font-bold text-white text-sm flex items-center gap-2">
-              <span class="text-base">🧤</span> Top CRC Fielders (Top 3)
-            </h4>
-            <span class="text-[11px] text-slate-400">Catches, Run-outs & Stumpings</span>
-          </div>
-          <div class="space-y-2">
-            ${awards.fielders.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No fielding dismissals in this innings</div>' :
-              awards.fielders.slice(0, 3).map((f, idx) =>
-                renderPodiumItem(
-                  idx + 1,
-                  f.name,
-                  `${f.total} Dismissal${f.total > 1 ? 's' : ''}`,
-                  `${f.catches} Catches • ${f.runouts} Run-outs${f.stumpings ? ' • ' + f.stumpings + ' St' : ''}`,
-                  'sky'
-                )
-              ).join('')
-            }
-          </div>
-        </div>
-
-        <!-- Category D: Match MVP / Impact Ranking (Top 3) -->
+        <!-- Category 1: Match MVP / Impact Ranking (Top 3 - First!) -->
         <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
           <div class="flex justify-between items-center pb-2 border-b border-slate-800">
             <h4 class="font-bold text-white text-sm flex items-center gap-2">
@@ -1496,13 +1599,86 @@ function renderMatchAwardsSubTab(match) {
           </div>
           <div class="space-y-2">
             ${awards.mvps.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No player activity recorded</div>' :
-              awards.mvps.slice(0, 3).map((p, idx) =>
+              getPodiumRanking(awards.mvps, (a, b) => a.totalPts === b.totalPts).map(({ item: p, place, isJoint }) =>
                 renderPodiumItem(
-                  idx + 1,
+                  place,
                   p.name,
                   `${p.totalPts} MVP Pts`,
                   `Bat: +${Math.round(p.batPts)} • Bowl: +${Math.round(p.bowlPts)} • Fld: +${Math.round(p.fieldPts)}${p.potmPts ? ' • POTM: +20' : ''}`,
-                  'amber'
+                  'red',
+                  isJoint
+                )
+              ).join('')
+            }
+          </div>
+        </div>
+
+        <!-- Category 2: Top Batters (Top 3) -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <span class="text-base">🏏</span> Top CRC Batters (Top 3)
+            </h4>
+            <span class="text-[11px] text-slate-400">Ranked by Runs & SR</span>
+          </div>
+          <div class="space-y-2">
+            ${awards.batters.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No batting data recorded</div>' :
+              getPodiumRanking(awards.batters, (a, b) => a.runs === b.runs).map(({ item: b, place, isJoint }) =>
+                renderPodiumItem(
+                  place,
+                  b.name,
+                  `${b.runs} Runs (${b.balls}b)`,
+                  `SR ${b.sr} • ${b.sixes}x6, ${b.fours}x4 • ${b.isNotOut ? 'Not Out' : 'Out'}`,
+                  'amber',
+                  isJoint
+                )
+              ).join('')
+            }
+          </div>
+        </div>
+
+        <!-- Category 3: Top Bowlers (Top 3 with Joint Winners Support) -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <span class="text-base">🎯</span> Top CRC Bowlers (Top 3)
+            </h4>
+            <span class="text-[11px] text-slate-400">Ranked by Wkts & Economy</span>
+          </div>
+          <div class="space-y-2">
+            ${awards.bowlers.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No bowling data recorded</div>' :
+              getPodiumRanking(awards.bowlers, (a, b) => a.wickets === b.wickets && a.runs === b.runs).map(({ item: bw, place, isJoint }) =>
+                renderPodiumItem(
+                  place,
+                  bw.name,
+                  `${bw.wickets}/${bw.runs} (${bw.overs} ov)`,
+                  `Econ ${bw.economy} • ${bw.maidens} Mdns • ${bw.dots} Dots`,
+                  'purple',
+                  isJoint
+                )
+              ).join('')
+            }
+          </div>
+        </div>
+
+        <!-- Category 4: Top Fielders (Top 3 with Joint Winners Support) -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <h4 class="font-bold text-white text-sm flex items-center gap-2">
+              <span class="text-base">🧤</span> Top CRC Fielders (Top 3)
+            </h4>
+            <span class="text-[11px] text-slate-400">Catches, Run-outs & Stumpings</span>
+          </div>
+          <div class="space-y-2">
+            ${awards.fielders.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No fielding dismissals in this innings</div>' :
+              getPodiumRanking(awards.fielders, (a, b) => a.total === b.total && a.catches === b.catches && a.runouts === b.runouts).map(({ item: f, place, isJoint }) =>
+                renderPodiumItem(
+                  place,
+                  f.name,
+                  `${f.total} Dismissal${f.total > 1 ? 's' : ''}`,
+                  `${f.catches} Catches • ${f.runouts} Run-outs${f.stumpings ? ' • ' + f.stumpings + ' St' : ''}`,
+                  'sky',
+                  isJoint
                 )
               ).join('')
             }
@@ -1818,9 +1994,9 @@ function renderLeaderboardTab() {
   const battingTbody = document.getElementById('leaderboard-batting-body');
   if (battingTbody) {
     battingTbody.innerHTML = battingList.map((p, idx) => `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${idx === 0 ? 'border-amber-500 bg-amber-500/10' : 'border-transparent'}">
         <td class="py-3 px-4 font-mono font-bold ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">
-          ${idx === 0 ? '🟠 1' : idx + 1}
+          ${idx + 1}
         </td>
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
@@ -1847,9 +2023,9 @@ function renderLeaderboardTab() {
   const bowlingTbody = document.getElementById('leaderboard-bowling-body');
   if (bowlingTbody) {
     bowlingTbody.innerHTML = bowlingList.map((p, idx) => `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${idx === 0 ? 'border-purple-500 bg-purple-500/10' : 'border-transparent'}">
         <td class="py-3 px-4 font-mono font-bold ${idx === 0 ? 'text-purple-400' : 'text-slate-400'}">
-          ${idx === 0 ? '🟣 1' : idx + 1}
+          ${idx + 1}
         </td>
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
@@ -1876,9 +2052,9 @@ function renderLeaderboardTab() {
   const mvpTbody = document.getElementById('leaderboard-mvp-body');
   if (mvpTbody) {
     mvpTbody.innerHTML = mvpList.map((p, idx) => `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${idx === 0 ? 'border-amber-400 bg-amber-500/10' : 'border-transparent'}">
         <td class="py-3 px-4 font-mono font-bold ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">
-          ${idx === 0 ? '⭐ 1' : idx + 1}
+          ${idx + 1}
         </td>
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
@@ -1904,12 +2080,15 @@ function renderLeaderboardTab() {
   const awardsTbody = document.getElementById('leaderboard-awards-body');
   if (awardsTbody) {
     awardsTbody.innerHTML = awardsList.map((p, idx) => `
-      <tr class="hover:bg-slate-800/40 transition-colors">
+      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${idx === 0 ? 'border-amber-400 bg-amber-500/10' : 'border-transparent'}">
         <td class="py-3 px-4 font-mono font-bold ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">
-          ${idx === 0 ? '🏆 1' : idx + 1}
+          ${idx + 1}
         </td>
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
+        </td>
+        <td class="py-3 px-3 text-right font-mono ${p.awards.matchMvp > 0 ? 'text-amber-300 font-bold' : 'text-slate-500'}">
+          ${p.awards.matchMvp}
         </td>
         <td class="py-3 px-3 text-right font-mono ${p.awards.topBatter > 0 ? 'text-amber-400 font-bold' : 'text-slate-500'}">
           ${p.awards.topBatter}
@@ -1919,9 +2098,6 @@ function renderLeaderboardTab() {
         </td>
         <td class="py-3 px-3 text-right font-mono ${p.awards.topFielder > 0 ? 'text-sky-400 font-bold' : 'text-slate-500'}">
           ${p.awards.topFielder}
-        </td>
-        <td class="py-3 px-3 text-right font-mono ${p.awards.matchMvp > 0 ? 'text-amber-300 font-bold' : 'text-slate-500'}">
-          ${p.awards.matchMvp}
         </td>
         <td class="py-3 px-4 text-right font-mono font-black text-amber-400 text-sm">
           ${p.awards.total}
@@ -1964,7 +2140,7 @@ function renderPlayersTab() {
   const container = document.getElementById('players-grid');
   if (!container) return;
 
-  const playerList = Object.values(stats);
+  const playerList = Object.values(stats).sort((a, b) => b.mvpPoints - a.mvpPoints || b.runs - a.runs || b.wickets - a.wickets);
 
   container.innerHTML = playerList.map(p => {
     return `
@@ -2055,10 +2231,10 @@ function openPlayerProfileByName(name) {
       if (!isParticipant) return '';
 
       const awards = getMatchCrcAwards(match);
-      const isTopBatter = awards.topBatterWinner?.name === p.name;
-      const isTopBowler = awards.topBowlerWinner?.name === p.name;
-      const isTopFielder = awards.topFielderWinner?.name === p.name;
-      const isMatchMvp = awards.matchMvpWinner?.name === p.name;
+      const isTopBatter = (awards.topBatterWinners || []).some(w => w.name === p.name) || awards.topBatterWinner?.name === p.name;
+      const isTopBowler = (awards.topBowlerWinners || []).some(w => w.name === p.name) || awards.topBowlerWinner?.name === p.name;
+      const isTopFielder = (awards.topFielderWinners || []).some(w => w.name === p.name) || awards.topFielderWinner?.name === p.name;
+      const isMatchMvp = (awards.matchMvpWinners || []).some(w => w.name === p.name) || awards.matchMvpWinner?.name === p.name;
 
       return `
         <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-1.5 text-xs">
