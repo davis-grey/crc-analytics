@@ -46,7 +46,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function normalizePlayerName(name) {
   if (!name) return '';
-  return name.replace(/\s*\((?:C|Wk|c|wk)\)/gi, '').trim();
+  let clean = name.replace(/\s*\((?:C|Wk|c|wk)\)/gi, '').trim();
+  const lower = clean.toLowerCase();
+  if (lower.startsWith('avinash')) return 'Avinash';
+  if (lower.startsWith('joyvin')) return 'Joyvin';
+  if (lower.startsWith('jenson')) return 'Jenson';
+  if (lower.startsWith('davison')) return 'Davison';
+  if (lower.includes('savio lobo')) return 'Savio Lobo';
+  if (lower === 'savio' || lower.startsWith('savio r')) return 'Savio';
+  if (lower === 'j. d' || lower === 'j.d' || lower === 'joy d' || lower.startsWith('joy d')) return 'Joy D';
+  if (lower.startsWith('srikanth')) return 'Srikanth';
+  if (lower.startsWith('yash')) return 'Yash';
+  if (lower.startsWith('shivam')) return 'Shivam';
+  if (lower.startsWith('rifaz')) return 'Rifaz';
+  return clean;
 }
 
 function isCrcTeam(inn) {
@@ -271,7 +284,8 @@ function updateActiveTournamentPill() {
     pill.classList.add('hidden');
   } else {
     pill.classList.remove('hidden');
-    nameSpan.textContent = 'Nemo CC Tournament 2026 S2';
+    const tMatch = matchesData.find(m => m.tournamentId === selectedTournament);
+    nameSpan.textContent = tMatch ? tMatch.tournament : selectedTournament;
   }
 }
 
@@ -339,7 +353,8 @@ function renderOverviewTab() {
   document.getElementById('stat-win-rate').textContent = `${winPercent}%`;
 
   const envText = selectedEnvironment === 'ALL' ? 'All Formats' : selectedEnvironment;
-  const tourneyText = selectedTournament === 'ALL' ? '' : ' • Nemo CC Tournament';
+  const tourneyMatch = matchesData.find(m => m.tournamentId === selectedTournament);
+  const tourneyText = selectedTournament === 'ALL' ? '' : ` • ${tourneyMatch ? tourneyMatch.tournament : selectedTournament}`;
   document.getElementById('overview-filter-indicator').textContent = `${envText}${tourneyText}`;
 
   renderCapsShowcase();
@@ -404,6 +419,14 @@ function renderTournamentsTab() {
   const container = document.getElementById('tournaments-list');
   if (!container) return;
 
+  // 1. CSK Indoor Tournament Season 3
+  const cskMatches = matchesData.filter(m => m.tournamentId === 'csk-indoor-2026-s3');
+  const cskWon = cskMatches.filter(m => m.outcome === 'WIN').length;
+  const cskLost = cskMatches.filter(m => m.outcome === 'LOSS').length;
+  const cskTotal = cskMatches.length;
+  const cskWinRate = cskTotal > 0 ? Math.round((cskWon / cskTotal) * 100) : 0;
+
+  // 2. Nemo CC 2026 S2
   const nemoMatches = matchesData.filter(m => m.tournamentId === 'nemo-cc-2026-s2');
   const wonCount = nemoMatches.filter(m => m.outcome === 'WIN').length;
   const lostCount = nemoMatches.filter(m => m.outcome === 'LOSS').length;
@@ -411,6 +434,72 @@ function renderTournamentsTab() {
   const winRate = total > 0 ? Math.round((wonCount / total) * 100) : 0;
 
   container.innerHTML = `
+    <!-- Tournament Card: CSK Indoor Tournament Season 3 (Latest) -->
+    <div class="bg-slate-900/90 border border-amber-500/30 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+      <div class="flex flex-wrap justify-between items-start gap-2 mb-4 pb-3 border-b border-slate-800">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              Season 2026-27 • Tournament 2
+            </span>
+            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Indoor</span>
+            <span class="px-2 py-0.5 text-[10px] bg-slate-800 text-slate-300 rounded">Turf Wicket</span>
+          </div>
+          <h3 class="text-xl font-bold text-white">CSK Indoor Tournament Season 3</h3>
+          <p class="text-xs text-slate-400">Venue: Mallow GAA, Cork • Result: Semi-Finalists 🎖️</p>
+        </div>
+        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+          Semi-Finals Reached
+        </span>
+      </div>
+
+      <!-- Quick Stats Row -->
+      <div class="grid grid-cols-4 gap-2 text-center bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800/80 mb-5">
+        <div>
+          <span class="text-[10px] text-slate-400 block">Matches</span>
+          <span class="font-mono font-bold text-white text-base">${cskTotal}</span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block">Won</span>
+          <span class="font-mono font-bold text-emerald-400 text-base">${cskWon}</span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block">Lost</span>
+          <span class="font-mono font-bold text-rose-400 text-base">${cskLost}</span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block">Win Rate</span>
+          <span class="font-mono font-bold text-amber-400 text-base">${cskWinRate}%</span>
+        </div>
+      </div>
+
+      <!-- Highlights & Awards -->
+      <div class="space-y-2 mb-6 text-xs text-slate-300">
+        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
+          <span class="text-slate-400">Top Run Scorer:</span>
+          <strong class="text-white">Jenson (73 runs, HS 37, 8 sixes)</strong>
+        </div>
+        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
+          <span class="text-slate-400">Top Wicket Takers:</span>
+          <strong class="text-purple-400">Davison (4 wkts) • Savio (3 wkts) • Joyvin (2 wkts)</strong>
+        </div>
+        <div class="flex justify-between items-center bg-slate-950/40 px-3 py-2 rounded-xl">
+          <span class="text-slate-400">CRC Player of the Match Awards:</span>
+          <strong class="text-amber-300">Davison (Pre-QF vs BD Tigers & QF vs Cork Indians) 🌟🌟</strong>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3">
+        <button onclick="filterByTournament('csk-indoor-2026-s3')" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-colors flex items-center gap-2">
+          <i data-lucide="trophy" class="w-4 h-4"></i> View Tournament Matches (${cskTotal})
+        </button>
+        <button onclick="switchTab('leaderboard')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs rounded-xl border border-slate-700 transition-colors flex items-center gap-2">
+          <i data-lucide="award" class="w-4 h-4"></i> View Leaderboard
+        </button>
+      </div>
+    </div>
+
     <!-- Tournament Card: Nemo CC 2026 S2 -->
     <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
       <div class="flex flex-wrap justify-between items-start gap-2 mb-4 pb-3 border-b border-slate-800">

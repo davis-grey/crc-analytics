@@ -62,5 +62,29 @@
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Wicketkeeper",
     "jerseyNumber": 1
+  },
+  {
+    "id": "avinash",
+    "name": "Avinash",
+    "role": "Fast Bowler / Batter",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm fast",
+    "jerseyNumber": 12
+  },
+  {
+    "id": "joyvin",
+    "name": "Joyvin",
+    "role": "Fast Bowler / Batter",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm fast",
+    "jerseyNumber": 15
+  },
+  {
+    "id": "savio_lobo",
+    "name": "Savio Lobo",
+    "role": "Bowler / Fielder",
+    "battingStyle": "Right-hand bat",
+    "bowlingStyle": "Right-arm medium",
+    "jerseyNumber": 25
   }
 ]

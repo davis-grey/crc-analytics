@@ -1,0 +1,396 @@
+{
+  "id": "csk-s3-m1-waterford",
+  "tournamentId": "csk-indoor-2026-s3",
+  "tournament": "CSK Indoor Tournament Season 3",
+  "stage": "Warm-up Round",
+  "matchTitle": "Warm-up Round vs Waterford Tigers",
+  "season": "2026-27",
+  "environment": "Indoor",
+  "pitchType": "Turf Wicket",
+  "format": "Club Cricket (7-a-side, 5 overs)",
+  "venue": "Mallow GAA, Cork",
+  "date": "2026-10-18",
+  "time": "10:00 AM",
+  "toss": "Waterford Tigers Opted To Bowl",
+  "scorer": "CricAce",
+  "result": "Waterford Tigers won by 5 wickets",
+  "outcome": "LOSS",
+  "playerOfTheMatch": "Sarath",
+  "crcBattingFirst": true,
+  "crcPlayingXI": [
+    "Avinash",
+    "Jenson",
+    "Srikanth",
+    "Yash",
+    "Joyvin",
+    "Savio",
+    "Davison"
+  ],
+  "summary": {
+    "crcScore": "56/3 (5.0)",
+    "oppScore": "57/2 (4.1)",
+    "oppName": "Waterford Tigers",
+    "oppShort": "WT"
+  },
+  "innings": [
+    {
+      "team": "CORK ROYAL CHALLENGERS",
+      "shortName": "CRC",
+      "runs": 56,
+      "wickets": 3,
+      "overs": "5.0",
+      "runRate": 11.2,
+      "extras": {
+        "wd": 5,
+        "nb": 1,
+        "total": 6
+      },
+      "batting": [
+        {
+          "player": "Avinash",
+          "runs": 2,
+          "balls": 4,
+          "fours": 0,
+          "sixes": 0,
+          "sr": 50.0,
+          "dismissal": "c Sharon b Jay"
+        },
+        {
+          "player": "Jenson",
+          "runs": 37,
+          "balls": 18,
+          "fours": 0,
+          "sixes": 5,
+          "sr": 205.6,
+          "dismissal": "run out (Sami)"
+        },
+        {
+          "player": "Srikanth",
+          "runs": 11,
+          "balls": 8,
+          "fours": 0,
+          "sixes": 1,
+          "sr": 137.5,
+          "dismissal": "run out (Jay)"
+        },
+        {
+          "player": "Yash",
+          "runs": 0,
+          "balls": 0,
+          "fours": 0,
+          "sixes": 0,
+          "sr": 0.0,
+          "dismissal": "not out"
+        }
+      ],
+      "fallOfWickets": [
+        {
+          "score": "6-1",
+          "player": "Avinash",
+          "over": "1.0"
+        },
+        {
+          "score": "55-2",
+          "player": "Srikanth",
+          "over": "4.5"
+        },
+        {
+          "score": "56-3",
+          "player": "Jenson",
+          "over": "5.0"
+        }
+      ],
+      "bowling": [
+        {
+          "bowler": "Jay",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 6,
+          "wickets": 1,
+          "economy": 6.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 0,
+          "wd": 2,
+          "nb": 0
+        },
+        {
+          "bowler": "Sharon",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 8,
+          "wickets": 0,
+          "economy": 8.0,
+          "dots": 3,
+          "fours": 0,
+          "sixes": 1,
+          "wd": 0,
+          "nb": 0
+        },
+        {
+          "bowler": "Sarath",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 17,
+          "wickets": 0,
+          "economy": 17.0,
+          "dots": 1,
+          "fours": 0,
+          "sixes": 2,
+          "wd": 0,
+          "nb": 1
+        },
+        {
+          "bowler": "Bipin",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 16,
+          "wickets": 0,
+          "economy": 16.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 2,
+          "wd": 1,
+          "nb": 0
+        },
+        {
+          "bowler": "Sami",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 9,
+          "wickets": 0,
+          "economy": 9.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 1,
+          "wd": 2,
+          "nb": 0
+        }
+      ],
+      "overProgression": [
+        {
+          "over": 1,
+          "runs": 6,
+          "cumulativeRuns": 6,
+          "wickets": 1,
+          "cumulativeWickets": 1,
+          "balls": "0 1 Wd Wd 1 1 1 W",
+          "bowler": "Jay"
+        },
+        {
+          "over": 2,
+          "runs": 8,
+          "cumulativeRuns": 14,
+          "wickets": 0,
+          "cumulativeWickets": 1,
+          "balls": "6 0 0 1 1 0",
+          "bowler": "Sharon"
+        },
+        {
+          "over": 3,
+          "runs": 17,
+          "cumulativeRuns": 31,
+          "wickets": 0,
+          "cumulativeWickets": 1,
+          "balls": "0 6 1 Nb 1 6 1",
+          "bowler": "Sarath"
+        },
+        {
+          "over": 4,
+          "runs": 16,
+          "cumulativeRuns": 47,
+          "wickets": 0,
+          "cumulativeWickets": 1,
+          "balls": "6 0 0 6 Wd 1 2",
+          "bowler": "Bipin"
+        },
+        {
+          "over": 5,
+          "runs": 9,
+          "cumulativeRuns": 56,
+          "wickets": 2,
+          "cumulativeWickets": 3,
+          "balls": "0 6 1 0 Wd W Wd W",
+          "bowler": "Sami"
+        }
+      ]
+    },
+    {
+      "team": "Waterford Tigers",
+      "shortName": "WT",
+      "runs": 57,
+      "wickets": 2,
+      "overs": "4.1",
+      "runRate": 13.7,
+      "extras": {
+        "wd": 0,
+        "nb": 0,
+        "total": 0
+      },
+      "batting": [
+        {
+          "player": "Sarath",
+          "runs": 31,
+          "balls": 12,
+          "fours": 0,
+          "sixes": 4,
+          "sr": 258.3,
+          "dismissal": "not out"
+        },
+        {
+          "player": "Sami",
+          "runs": 0,
+          "balls": 1,
+          "fours": 0,
+          "sixes": 0,
+          "sr": 0.0,
+          "dismissal": "run out"
+        },
+        {
+          "player": "Rijo",
+          "runs": 0,
+          "balls": 3,
+          "fours": 0,
+          "sixes": 0,
+          "sr": 0.0,
+          "dismissal": "bowled Joyvin"
+        },
+        {
+          "player": "Sharon",
+          "runs": 26,
+          "balls": 9,
+          "fours": 3,
+          "sixes": 2,
+          "sr": 288.9,
+          "dismissal": "not out"
+        }
+      ],
+      "fallOfWickets": [
+        {
+          "score": "1-1",
+          "player": "Sami",
+          "over": "0.2"
+        },
+        {
+          "score": "15-2",
+          "player": "Rijo",
+          "over": "1.3"
+        }
+      ],
+      "bowling": [
+        {
+          "bowler": "Yash",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 14,
+          "wickets": 0,
+          "economy": 14.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 2,
+          "wd": 0,
+          "nb": 0
+        },
+        {
+          "bowler": "Joyvin",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 9,
+          "wickets": 1,
+          "economy": 9.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 1,
+          "wd": 0,
+          "nb": 0
+        },
+        {
+          "bowler": "Srikanth",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 19,
+          "wickets": 0,
+          "economy": 19.0,
+          "dots": 1,
+          "fours": 3,
+          "sixes": 1,
+          "wd": 0,
+          "nb": 0
+        },
+        {
+          "bowler": "Savio",
+          "overs": 1,
+          "maidens": 0,
+          "runs": 9,
+          "wickets": 0,
+          "economy": 9.0,
+          "dots": 2,
+          "fours": 0,
+          "sixes": 1,
+          "wd": 0,
+          "nb": 0
+        },
+        {
+          "bowler": "Davison",
+          "overs": 0.1,
+          "maidens": 0,
+          "runs": 6,
+          "wickets": 0,
+          "economy": 36.0,
+          "dots": 0,
+          "fours": 0,
+          "sixes": 1,
+          "wd": 0,
+          "nb": 0
+        }
+      ],
+      "overProgression": [
+        {
+          "over": 1,
+          "runs": 14,
+          "cumulativeRuns": 14,
+          "wickets": 1,
+          "cumulativeWickets": 1,
+          "balls": "1 W 6 6 1 0",
+          "bowler": "Yash"
+        },
+        {
+          "over": 2,
+          "runs": 9,
+          "cumulativeRuns": 23,
+          "wickets": 1,
+          "cumulativeWickets": 2,
+          "balls": "1 0 W 1 1 6",
+          "bowler": "Joyvin"
+        },
+        {
+          "over": 3,
+          "runs": 19,
+          "cumulativeRuns": 42,
+          "wickets": 0,
+          "cumulativeWickets": 2,
+          "balls": "1 4 6 0 4 4",
+          "bowler": "Srikanth"
+        },
+        {
+          "over": 4,
+          "runs": 9,
+          "cumulativeRuns": 51,
+          "wickets": 0,
+          "cumulativeWickets": 2,
+          "balls": "6 0 1 0 1 1",
+          "bowler": "Savio"
+        },
+        {
+          "over": 5,
+          "runs": 6,
+          "cumulativeRuns": 57,
+          "wickets": 0,
+          "cumulativeWickets": 2,
+          "balls": "6",
+          "bowler": "Davison"
+        }
+      ]
+    }
+  ]
+}
