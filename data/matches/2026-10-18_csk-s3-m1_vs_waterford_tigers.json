@@ -7,7 +7,7 @@
   "season": "2026-27",
   "environment": "Indoor",
   "pitchType": "Turf Wicket",
-  "format": "Club Cricket (7-a-side, 5 overs)",
+  "format": "Club Cricket (8-a-side, 5 overs)",
   "venue": "Mallow GAA, Cork",
   "date": "2026-10-18",
   "time": "10:00 AM",
@@ -24,7 +24,8 @@
     "Yash",
     "Joyvin",
     "Savio",
-    "Davison"
+    "Davison",
+    "Rifaz"
   ],
   "summary": {
     "crcScore": "56/3 (5.0)",

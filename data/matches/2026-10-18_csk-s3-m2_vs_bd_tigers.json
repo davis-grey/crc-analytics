@@ -7,7 +7,7 @@
   "season": "2026-27",
   "environment": "Indoor",
   "pitchType": "Turf Wicket",
-  "format": "Club Cricket (7-a-side, 5 overs)",
+  "format": "Club Cricket (8-a-side, 5 overs)",
   "venue": "Mallow GAA, Cork",
   "date": "2026-10-18",
   "time": "11:30 AM",
@@ -24,7 +24,8 @@
     "Joyvin",
     "Davison",
     "Avinash",
-    "Jenson"
+    "Jenson",
+    "Joy D"
   ],
   "summary": {
     "crcScore": "37/0 (4.0)",
