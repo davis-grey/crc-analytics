@@ -1,0 +1,343 @@
+{
+  "stats": {
+    "Yash": {
+      "matches": 7,
+      "runs": 21,
+      "wickets": 1,
+      "mvpPoints": 143,
+      "potmCount": 0
+    },
+    "Jenson": {
+      "matches": 7,
+      "runs": 80,
+      "wickets": 2,
+      "mvpPoints": 272,
+      "potmCount": 1
+    },
+    "Davison": {
+      "matches": 7,
+      "runs": 0,
+      "wickets": 5,
+      "mvpPoints": 252,
+      "potmCount": 3
+    },
+    "Srikanth": {
+      "matches": 7,
+      "runs": 25,
+      "wickets": 2,
+      "mvpPoints": 133,
+      "potmCount": 0
+    },
+    "Savio": {
+      "matches": 7,
+      "runs": 2,
+      "wickets": 5,
+      "mvpPoints": 174,
+      "potmCount": 0
+    },
+    "Shivam": {
+      "matches": 3,
+      "runs": 9,
+      "wickets": 0,
+      "mvpPoints": 11,
+      "potmCount": 0
+    },
+    "Rifaz": {
+      "matches": 3,
+      "runs": 7,
+      "wickets": 0,
+      "mvpPoints": 34,
+      "potmCount": 0
+    },
+    "Joy D": {
+      "matches": 4,
+      "runs": 3,
+      "wickets": 0,
+      "mvpPoints": 13,
+      "potmCount": 0
+    },
+    "Avinash": {
+      "matches": 4,
+      "runs": 20,
+      "wickets": 0,
+      "mvpPoints": 32,
+      "potmCount": 0
+    },
+    "Joyvin": {
+      "matches": 4,
+      "runs": 0,
+      "wickets": 2,
+      "mvpPoints": 66,
+      "potmCount": 0
+    },
+    "Savio Lobo": {
+      "matches": 0,
+      "runs": 0,
+      "wickets": 0,
+      "mvpPoints": 0,
+      "potmCount": 0
+    }
+  },
+  "awards": [
+    {
+      "id": "hvup2795",
+      "mvps": [
+        {
+          "name": "Jenson",
+          "totalPts": 88
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 49
+        },
+        {
+          "name": "Davison",
+          "totalPts": 38
+        },
+        {
+          "name": "Savio",
+          "totalPts": 31
+        },
+        {
+          "name": "Yash",
+          "totalPts": 25
+        },
+        {
+          "name": "Rifaz",
+          "totalPts": 24
+        },
+        {
+          "name": "Shivam",
+          "totalPts": 1
+        }
+      ],
+      "topBatter": [
+        "Rifaz"
+      ]
+    },
+    {
+      "id": "idha0741",
+      "mvps": [
+        {
+          "name": "Jenson",
+          "totalPts": 46
+        },
+        {
+          "name": "Savio",
+          "totalPts": 27
+        },
+        {
+          "name": "Yash",
+          "totalPts": 14
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 6
+        },
+        {
+          "name": "Joy D",
+          "totalPts": 2
+        },
+        {
+          "name": "Davison",
+          "totalPts": 1
+        },
+        {
+          "name": "Shivam",
+          "totalPts": 0
+        }
+      ],
+      "topBatter": [
+        "Jenson"
+      ]
+    },
+    {
+      "id": "krfk8788",
+      "mvps": [
+        {
+          "name": "Davison",
+          "totalPts": 58
+        },
+        {
+          "name": "Jenson",
+          "totalPts": 28
+        },
+        {
+          "name": "Yash",
+          "totalPts": 24
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 14
+        },
+        {
+          "name": "Savio",
+          "totalPts": 13
+        },
+        {
+          "name": "Shivam",
+          "totalPts": 10
+        },
+        {
+          "name": "Rifaz",
+          "totalPts": 10
+        }
+      ],
+      "topBatter": [
+        "Yash"
+      ]
+    },
+    {
+      "id": "csk-s3-m1-waterford",
+      "mvps": [
+        {
+          "name": "Jenson",
+          "totalPts": 57
+        },
+        {
+          "name": "Joyvin",
+          "totalPts": 27
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 14
+        },
+        {
+          "name": "Yash",
+          "totalPts": 2
+        },
+        {
+          "name": "Savio",
+          "totalPts": 2
+        },
+        {
+          "name": "Avinash",
+          "totalPts": 2
+        },
+        {
+          "name": "Davison",
+          "totalPts": 0
+        }
+      ],
+      "topBatter": [
+        "Jenson"
+      ]
+    },
+    {
+      "id": "csk-s3-m2-bdtigers",
+      "mvps": [
+        {
+          "name": "Davison",
+          "totalPts": 84
+        },
+        {
+          "name": "Jenson",
+          "totalPts": 46
+        },
+        {
+          "name": "Yash",
+          "totalPts": 39
+        },
+        {
+          "name": "Savio",
+          "totalPts": 38
+        },
+        {
+          "name": "Joyvin",
+          "totalPts": 13
+        },
+        {
+          "name": "Avinash",
+          "totalPts": 5
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 2
+        }
+      ],
+      "topBatter": [
+        "Jenson"
+      ]
+    },
+    {
+      "id": "csk-s3-m3-corkindians",
+      "mvps": [
+        {
+          "name": "Davison",
+          "totalPts": 58
+        },
+        {
+          "name": "Savio",
+          "totalPts": 37
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 37
+        },
+        {
+          "name": "Joyvin",
+          "totalPts": 26
+        },
+        {
+          "name": "Avinash",
+          "totalPts": 20
+        },
+        {
+          "name": "Yash",
+          "totalPts": 14
+        },
+        {
+          "name": "Joy D",
+          "totalPts": 10
+        },
+        {
+          "name": "Jenson",
+          "totalPts": 6
+        }
+      ],
+      "topBatter": [
+        "Srikanth"
+      ]
+    },
+    {
+      "id": "csk-s3-m4-ashbourne",
+      "mvps": [
+        {
+          "name": "Savio",
+          "totalPts": 26
+        },
+        {
+          "name": "Yash",
+          "totalPts": 25
+        },
+        {
+          "name": "Davison",
+          "totalPts": 13
+        },
+        {
+          "name": "Srikanth",
+          "totalPts": 11
+        },
+        {
+          "name": "Avinash",
+          "totalPts": 5
+        },
+        {
+          "name": "Joy D",
+          "totalPts": 1
+        },
+        {
+          "name": "Jenson",
+          "totalPts": 1
+        },
+        {
+          "name": "Joyvin",
+          "totalPts": 0
+        }
+      ],
+      "topBatter": [
+        "Yash"
+      ]
+    }
+  ]
+}

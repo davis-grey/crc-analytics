@@ -5,7 +5,8 @@
     "role": "Top-order Batter / Bowler",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm medium",
-    "jerseyNumber": 18
+    "jerseyNumber": 18,
+    "aliases": []
   },
   {
     "id": "jenson",
@@ -13,7 +14,8 @@
     "role": "All-Rounder",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm fast-medium",
-    "jerseyNumber": 7
+    "jerseyNumber": 7,
+    "aliases": []
   },
   {
     "id": "davison",
@@ -21,7 +23,8 @@
     "role": "Bowler",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm medium",
-    "jerseyNumber": 11
+    "jerseyNumber": 11,
+    "aliases": []
   },
   {
     "id": "srikanth",
@@ -29,7 +32,8 @@
     "role": "Bowling All-Rounder",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm off-spin",
-    "jerseyNumber": 9
+    "jerseyNumber": 9,
+    "aliases": []
   },
   {
     "id": "savio",
@@ -37,7 +41,11 @@
     "role": "All-Rounder",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm medium",
-    "jerseyNumber": 24
+    "jerseyNumber": 24,
+    "aliases": [
+      "Savio Rodrigues",
+      "Savio R"
+    ]
   },
   {
     "id": "shivam",
@@ -45,7 +53,8 @@
     "role": "Top-order Batter",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm off-spin",
-    "jerseyNumber": 45
+    "jerseyNumber": 45,
+    "aliases": []
   },
   {
     "id": "rifaz",
@@ -53,7 +62,8 @@
     "role": "Batter / Gun Fielder",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm medium",
-    "jerseyNumber": 3
+    "jerseyNumber": 3,
+    "aliases": []
   },
   {
     "id": "joy_d",
@@ -61,7 +71,13 @@
     "role": "Wicketkeeper / Captain",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Wicketkeeper",
-    "jerseyNumber": 1
+    "jerseyNumber": 1,
+    "aliases": [
+      "J D",
+      "J.D",
+      "J. D",
+      "Joyd"
+    ]
   },
   {
     "id": "avinash",
@@ -69,7 +85,10 @@
     "role": "Fast Bowler / Batter",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm fast",
-    "jerseyNumber": 12
+    "jerseyNumber": 12,
+    "aliases": [
+      "Avinash K"
+    ]
   },
   {
     "id": "joyvin",
@@ -77,7 +96,10 @@
     "role": "Fast Bowler / Batter",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm fast",
-    "jerseyNumber": 15
+    "jerseyNumber": 15,
+    "aliases": [
+      "Joyvin D"
+    ]
   },
   {
     "id": "savio_lobo",
@@ -85,6 +107,9 @@
     "role": "Bowler / Fielder",
     "battingStyle": "Right-hand bat",
     "bowlingStyle": "Right-arm medium",
-    "jerseyNumber": 25
+    "jerseyNumber": 25,
+    "aliases": [
+      "Savio Lobo"
+    ]
   }
 ]
