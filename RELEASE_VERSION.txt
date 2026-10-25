@@ -1,0 +1,6 @@
+CRC Analytics winner badge layout v2 — 2026-10-25
+
+Open THIS folder’s index.html, not the earlier CRC_Analytics_Refactored folder.
+Verify the version by searching index.html for: 2026-10-25-winner-badge-fix-v2
+
+Changes: all first-place players show WINNER (including ties); name/badge and statistics have separate mobile grid rows; spotlight names are no longer truncated.

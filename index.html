@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cork Royal Challengers - Cricket Match & Stats Hub</title>
+  <meta name="crc-release" content="2026-10-25-winner-badge-fix-v2">
   <meta name="description" content="Official stats, match scorecards, tournaments, and player leaderboards for Cork Royal Challengers Cricket Club, Cork, Ireland.">
 
   <!-- Fonts & Icons -->
@@ -40,9 +41,9 @@
   </script>
 
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <!-- Chart.js CDN for Worm & Manhattan Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <!-- HTML2Canvas for 1-click WhatsApp poster generation -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -80,6 +81,30 @@
     .sortable-th:hover {
       color: #fbbf24;
     }
+
+    /* Compact, readable mobile scorecards. Horizontal scrolling is intentional: never
+       crush batting figures or long bowler names into 320px of table width. */
+    .scorecard-table { min-width: 600px; border-collapse: collapse; }
+    .scorecard-table th, .scorecard-table td { vertical-align: middle; }
+    .scorecard-table td:first-child, .scorecard-table th:first-child {
+      white-space: nowrap;
+    }
+    .match-subtab-scroll { scroll-behavior: smooth; overscroll-behavior-x: contain; }
+    .match-subtab-btn { scroll-margin-inline: 12px; }
+    /* Award ranking: keep the player + WINNER badge in one cell and the
+       statistics in another. They never compete for horizontal space on phones. */
+    .podium-entry { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+    .podium-entry > div { min-width: 0; }
+    .podium-winner-tag { white-space: nowrap; flex-shrink: 0; }
+    .podium-stats { overflow-wrap: anywhere; }
+    @media (min-width: 640px) {
+      .podium-entry { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+    }
+    @media (max-width: 639px) {
+      .scorecard-table { min-width: 610px; }
+      .scorecard-table th, .scorecard-table td { font-size: 12px; }
+      .match-detail-heading { min-width: 0; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black overflow-x-hidden">
@@ -89,13 +114,13 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Brand Logo & Name -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 ring-1 ring-amber-400">
+        <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 ring-1 ring-amber-400">
             🦁
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-lg font-black tracking-tight text-white uppercase">Cork Royal Challengers</h1>
+            <div class="flex min-w-0 items-center gap-2">
+              <h1 class="text-[clamp(0.75rem,3.4vw,1rem)] sm:text-lg leading-tight font-black tracking-tight text-white uppercase">Cork Royal Challengers</h1>
               <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">CRC</span>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
@@ -106,19 +131,22 @@
           </div>
         </div>
 
-        <!-- Season Pill -->
-        <div class="flex items-center gap-3">
-          <span class="px-3 py-1 bg-red-950/80 border border-red-500/40 rounded-full text-xs font-bold text-red-300">
+        <!-- Season Pill & Mobile Hamburger Menu -->
+        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+          <span class="hidden sm:inline-block px-3 py-1 bg-red-950/80 border border-red-500/40 rounded-full text-xs font-bold text-red-300">
             Season 2026-27
           </span>
+          <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none transition-colors" aria-label="Toggle navigation menu">
+            <i data-lucide="menu" id="mobile-menu-icon" class="w-5 h-5 text-amber-400"></i>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Navigation Tabs (Dedicated Tournaments Section Included!) -->
-    <div class="border-t border-slate-800/80 bg-slate-900/60">
+    <!-- Desktop Navigation Tabs (Hidden on mobile) -->
+    <div class="border-t border-slate-800/80 bg-slate-900/60 hidden md:block">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav class="flex space-x-1 sm:space-x-6 overflow-x-auto custom-scrollbar text-xs font-semibold" aria-label="Tabs">
+        <nav class="flex space-x-6 text-xs font-semibold" aria-label="Tabs">
           <button data-tab-target="overview" class="tab-btn active-tab py-3 px-3 border-b-2 text-amber-400 border-amber-400 flex items-center gap-1.5 shrink-0 transition-colors">
             <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
           </button>
@@ -138,6 +166,58 @@
       </div>
     </div>
   </header>
+
+  <!-- Mobile Full-Screen Navigation Drawer (100% Solid Opaque Background) -->
+  <div id="mobile-nav-menu" class="hidden fixed inset-0 z-[100] flex flex-col justify-between p-6 overflow-y-auto" style="background-color: #0b0f19; min-height: 100vh;">
+    <!-- Top Bar: Logo & Close Button -->
+    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg ring-1 ring-amber-400">
+          🦁
+        </div>
+        <div>
+          <h2 class="text-base font-black tracking-tight text-white uppercase">Cork Royal Challengers</h2>
+          <p class="text-xs text-amber-400 font-semibold">Club Hub Navigation</p>
+        </div>
+      </div>
+      <button onclick="toggleMobileMenu()" class="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none transition-colors" aria-label="Close menu">
+        <i data-lucide="x" class="w-6 h-6 text-amber-400"></i>
+      </button>
+    </div>
+
+    <!-- Nav Items: Spacious Full-Width Cards -->
+    <div class="space-y-3.5 my-auto py-8">
+      <button data-tab-target="overview" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-base flex items-center justify-between transition-all shadow-md">
+        <span class="flex items-center gap-3.5"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Overview</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/60"></i>
+      </button>
+      <button data-tab-target="tournaments" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+        <span class="flex items-center gap-3.5"><i data-lucide="shield" class="w-5 h-5 text-amber-400"></i> Tournaments</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+      <button data-tab-target="matches" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+        <span class="flex items-center gap-3.5"><i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i> Matches & Results</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+      <button data-tab-target="leaderboard" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+        <span class="flex items-center gap-3.5"><i data-lucide="award" class="w-5 h-5 text-amber-400"></i> Leaderboard & Caps</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+      <button data-tab-target="players" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+        <span class="flex items-center gap-3.5"><i data-lucide="users" class="w-5 h-5 text-amber-400"></i> Squad Profiles</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+      </button>
+    </div>
+
+    <!-- Bottom Drawer Footer -->
+    <div class="pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+      <span>Cork Royal Challengers CC</span>
+      <span class="px-3 py-1 bg-red-950 border border-red-500/40 rounded-full text-xs font-bold text-red-300">
+        Season 2026-27
+      </span>
+    </div>
+  </div>
+
 
   <!-- Format Filter & MVP Explainer Bar (Defaults to All Formats) -->
   <div class="bg-slate-900/90 border-b border-slate-800 py-2.5 px-4 sm:px-6 lg:px-8">
@@ -165,7 +245,7 @@
   </div>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
     <!-- TAB 1: OVERVIEW -->
     <div id="tab-panel-overview" class="tab-content-panel space-y-6">
@@ -185,17 +265,17 @@
           <div class="bg-slate-900/80 border border-emerald-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Matches Won</span>
             <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-matches-won">2</div>
-            <span class="text-[10px] text-emerald-500/80">Wins vs Stars & Royals</span>
+            <span class="text-[10px] text-emerald-500/80">Across all tournaments</span>
           </div>
           <div class="bg-slate-900/80 border border-rose-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Matches Lost</span>
             <div class="text-2xl font-black text-rose-400 font-mono" id="stat-matches-lost">1</div>
-            <span class="text-[10px] text-rose-400/80">vs Nemo Rising</span>
+            <span class="text-[10px] text-rose-400/80">Across all tournaments</span>
           </div>
           <div class="bg-slate-900/80 border border-amber-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Win Rate</span>
             <div class="text-2xl font-black text-amber-400 font-mono" id="stat-win-rate">67%</div>
-            <span class="text-[10px] text-amber-300">Strong Season Start</span>
+            <span class="text-[10px] text-amber-300">Completed fixtures</span>
           </div>
         </div>
       </div>
@@ -209,6 +289,25 @@
           </button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- MVP Leader Card (First!) -->
+          <div class="relative overflow-hidden bg-gradient-to-br from-red-950/50 via-slate-900 to-slate-900 border border-red-500/40 rounded-2xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-3">
+              <span class="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-red-400">
+                <span class="text-lg">⭐</span> Club MVP Leader
+              </span>
+              <span class="text-[10px] text-slate-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30">Match Impact</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xl font-black text-white" id="mvp-leader-name">Jenson</h3>
+                <p class="text-xs text-slate-300 mt-0.5" id="mvp-leader-meta">Loading...</p>
+              </div>
+              <div class="text-right">
+                <span class="text-2xl font-black text-red-400 font-mono" id="mvp-leader-points">--</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Orange Cap Card -->
           <div class="relative overflow-hidden bg-gradient-to-br from-amber-950/50 via-slate-900 to-slate-900 border border-amber-500/40 rounded-2xl p-5 shadow-xl">
             <div class="flex items-center justify-between mb-3">
@@ -246,25 +345,6 @@
               </div>
             </div>
           </div>
-
-          <!-- MVP Leader Card -->
-          <div class="relative overflow-hidden bg-gradient-to-br from-red-950/50 via-slate-900 to-slate-900 border border-red-500/40 rounded-2xl p-5 shadow-xl">
-            <div class="flex items-center justify-between mb-3">
-              <span class="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-red-400">
-                <span class="text-lg">⭐</span> Club MVP Leader
-              </span>
-              <span class="text-[10px] text-slate-400 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/30">Match Impact</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 class="text-xl font-black text-white" id="mvp-leader-name">Jenson</h3>
-                <p class="text-xs text-slate-300 mt-0.5" id="mvp-leader-meta">Loading...</p>
-              </div>
-              <div class="text-right">
-                <span class="text-2xl font-black text-red-400 font-mono" id="mvp-leader-points">--</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -279,6 +359,18 @@
           </button>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <!-- Match MVP Award Leader Card (First!) -->
+          <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">⭐ Match MVP</span>
+                <span id="award-match-mvp-count" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">--</span>
+              </div>
+              <div id="award-match-mvp-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
+            </div>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match MVP Honors</span>
+          </div>
+
           <!-- Top Batter Award Leader Card -->
           <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
             <div>
@@ -313,18 +405,6 @@
               <div id="award-top-fielder-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
             </div>
             <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match Dismissals</span>
-          </div>
-
-          <!-- Match MVP Award Leader Card -->
-          <div class="bg-slate-900/80 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-4 shadow-md transition-all flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-slate-300 flex items-center gap-1">⭐ Match MVP</span>
-                <span id="award-match-mvp-count" class="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">--</span>
-              </div>
-              <div id="award-match-mvp-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
-            </div>
-            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match MVP Honors</span>
           </div>
         </div>
       </div>
@@ -403,7 +483,46 @@
         </button>
       </div>
 
-      <!-- 1. Batting Leaderboard (Collapsible) -->
+      <!-- 1. MVP Leaderboard (Collapsible - First!) -->
+      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
+        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
+          <div class="flex items-center gap-2.5">
+            <span class="text-xl">⭐</span>
+            <div>
+              <h3 class="font-bold text-white text-base flex items-center gap-2">
+                Club MVP Impact Standings
+              </h3>
+              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="leaderboard-mvp-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">MVP Leader</span>
+            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-amber-400 transition-colors">
+              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
+            </div>
+          </div>
+        </summary>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
+                <th class="py-3 px-4">Rank</th>
+                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('mvp', 'name')">Player <span id="sort-mvp-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('mvp', 'mvpPoints')">⭐ MVP Points <span id="sort-mvp-mvpPoints"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-300 font-semibold" onclick="sortLeaderboard('mvp', 'potmCount')">🏆 POTM <span id="sort-mvp-potmCount"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'runs')">Runs <span id="sort-mvp-runs"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'wickets')">Wickets <span id="sort-mvp-wickets"></span></th>
+                <th class="py-3 px-4 text-right sortable-th" onclick="sortLeaderboard('mvp', 'totalFielding')">Fielding <span id="sort-mvp-totalFielding"></span></th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-mvp-body" class="divide-y divide-slate-800/60">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <!-- 2. Batting Leaderboard (Collapsible) -->
       <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
         <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
           <div class="flex items-center gap-2.5">
@@ -444,7 +563,7 @@
         </div>
       </details>
 
-      <!-- 2. Bowling Leaderboard (Collapsible) -->
+      <!-- 3. Bowling Leaderboard (Collapsible) -->
       <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
         <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
           <div class="flex items-center gap-2.5">
@@ -485,45 +604,6 @@
         </div>
       </details>
 
-      <!-- 3. MVP Leaderboard (Collapsible) -->
-      <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
-        <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
-          <div class="flex items-center gap-2.5">
-            <span class="text-xl">⭐</span>
-            <div>
-              <h3 class="font-bold text-white text-base flex items-center gap-2">
-                Club MVP Impact Standings
-              </h3>
-              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <span id="leaderboard-mvp-pill" class="hidden sm:inline-block text-xs font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/30">MVP Leader</span>
-            <div class="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 group-open:text-amber-400 transition-colors">
-              <i data-lucide="chevron-down" class="w-4 h-4 transform group-open:rotate-180 transition-transform duration-200"></i>
-            </div>
-          </div>
-        </summary>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
-            <thead>
-              <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
-                <th class="py-3 px-4">Rank</th>
-                <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('mvp', 'name')">Player <span id="sort-mvp-name"></span></th>
-                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'runs')">Runs <span id="sort-mvp-runs"></span></th>
-                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'wickets')">Wickets <span id="sort-mvp-wickets"></span></th>
-                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('mvp', 'totalFielding')">Fielding <span id="sort-mvp-totalFielding"></span></th>
-                <th class="py-3 px-3 text-right sortable-th text-amber-400" onclick="sortLeaderboard('mvp', 'potmCount')">POTM <span id="sort-mvp-potmCount"></span></th>
-                <th class="py-3 px-4 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('mvp', 'mvpPoints')">MVP Points <span id="sort-mvp-mvpPoints"></span></th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-mvp-body" class="divide-y divide-slate-800/60">
-              <!-- Populated by JS -->
-            </tbody>
-          </table>
-        </div>
-      </details>
-
       <!-- 4. Match Awards & Honors Leaderboard (Collapsible) -->
       <details open class="group bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl transition-all">
         <summary class="p-4 bg-slate-800/60 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between list-none select-none transition-colors">
@@ -549,11 +629,12 @@
               <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
                 <th class="py-3 px-4">Rank</th>
                 <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('awards', 'name')">Player <span id="sort-awd-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('awards', 'mvpPoints')">⭐ MVP Pts <span id="sort-awd-mvpPoints"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-white font-bold" onclick="sortLeaderboard('awards', 'total')">🏆 Total <span id="sort-awd-total"></span></th>
+                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'matchMvp')">⭐ Match MVP <span id="sort-awd-matchMvp"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topBatter')">🏏 Top Batter <span id="sort-awd-topBatter"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topBowler')">🎯 Top Bowler <span id="sort-awd-topBowler"></span></th>
-                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'topFielder')">🧤 Top Fielder <span id="sort-awd-topFielder"></span></th>
-                <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('awards', 'matchMvp')">⭐ Match MVP <span id="sort-awd-matchMvp"></span></th>
-                <th class="py-3 px-4 text-right sortable-th text-amber-400 font-bold" onclick="sortLeaderboard('awards', 'total')">🏆 Total Awards <span id="sort-awd-total"></span></th>
+                <th class="py-3 px-4 text-right sortable-th" onclick="sortLeaderboard('awards', 'topFielder')">🧤 Top Fielder <span id="sort-awd-topFielder"></span></th>
               </tr>
             </thead>
             <tbody id="leaderboard-awards-body" class="divide-y divide-slate-800/60">
@@ -671,7 +752,7 @@
       <!-- Batting Summary Grid -->
       <div class="mb-4">
         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-2">Batting Statistics</span>
-        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
           <div>
             <span class="text-[10px] text-slate-400 block">Matches</span>
             <span id="modal-stat-matches" class="font-mono font-bold text-white text-sm">-</span>
@@ -698,7 +779,7 @@
       <!-- Bowling Summary Grid -->
       <div class="mb-5">
         <span class="text-xs font-bold text-purple-400 uppercase tracking-wider block mb-2">Bowling & Fielding</span>
-        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
           <div>
             <span class="text-[10px] text-slate-400 block">Wickets</span>
             <span id="modal-stat-wkts" class="font-mono font-bold text-purple-400 text-sm">-</span>
@@ -758,6 +839,7 @@
   <!-- Bundled Local / Offline Data -->
   <script src="data.js"></script>
   <!-- App Logic -->
+  <script src="stats.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,27 @@
+name: Validate CRC Analytics
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate match records and check generated data
+        run: python scripts/validate_data.py
+      - name: Cricket/data validation regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Browser logic regression tests
+        run: node tests/test_app.cjs
+      - name: JavaScript parse checks
+        run: |
+          node --check app.js
+          node --check stats.js
