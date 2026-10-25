@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cork Royal Challengers - Cricket Match & Stats Hub</title>
+  <meta name="crc-release" content="2026-10-25-winner-badge-fix-v2">
   <meta name="description" content="Official stats, match scorecards, tournaments, and player leaderboards for Cork Royal Challengers Cricket Club, Cork, Ireland.">
 
   <!-- Fonts & Icons -->
@@ -40,9 +41,9 @@
   </script>
 
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
   <!-- Chart.js CDN for Worm & Manhattan Charts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <!-- HTML2Canvas for 1-click WhatsApp poster generation -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -80,6 +81,30 @@
     .sortable-th:hover {
       color: #fbbf24;
     }
+
+    /* Compact, readable mobile scorecards. Horizontal scrolling is intentional: never
+       crush batting figures or long bowler names into 320px of table width. */
+    .scorecard-table { min-width: 600px; border-collapse: collapse; }
+    .scorecard-table th, .scorecard-table td { vertical-align: middle; }
+    .scorecard-table td:first-child, .scorecard-table th:first-child {
+      white-space: nowrap;
+    }
+    .match-subtab-scroll { scroll-behavior: smooth; overscroll-behavior-x: contain; }
+    .match-subtab-btn { scroll-margin-inline: 12px; }
+    /* Award ranking: keep the player + WINNER badge in one cell and the
+       statistics in another. They never compete for horizontal space on phones. */
+    .podium-entry { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+    .podium-entry > div { min-width: 0; }
+    .podium-winner-tag { white-space: nowrap; flex-shrink: 0; }
+    .podium-stats { overflow-wrap: anywhere; }
+    @media (min-width: 640px) {
+      .podium-entry { grid-template-columns: minmax(0, 1fr) minmax(0, max-content); }
+    }
+    @media (max-width: 639px) {
+      .scorecard-table { min-width: 610px; }
+      .scorecard-table th, .scorecard-table td { font-size: 12px; }
+      .match-detail-heading { min-width: 0; }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-black overflow-x-hidden">
@@ -89,13 +114,13 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <!-- Brand Logo & Name -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 ring-1 ring-amber-400">
+        <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center font-black text-white text-xl shadow-lg shadow-red-600/30 ring-1 ring-amber-400">
             🦁
           </div>
           <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-lg font-black tracking-tight text-white uppercase">Cork Royal Challengers</h1>
+            <div class="flex min-w-0 items-center gap-2">
+              <h1 class="text-[clamp(0.75rem,3.4vw,1rem)] sm:text-lg leading-tight font-black tracking-tight text-white uppercase">Cork Royal Challengers</h1>
               <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">CRC</span>
             </div>
             <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
@@ -107,7 +132,7 @@
         </div>
 
         <!-- Season Pill & Mobile Hamburger Menu -->
-        <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
           <span class="hidden sm:inline-block px-3 py-1 bg-red-950/80 border border-red-500/40 rounded-full text-xs font-bold text-red-300">
             Season 2026-27
           </span>
@@ -162,23 +187,23 @@
 
     <!-- Nav Items: Spacious Full-Width Cards -->
     <div class="space-y-3.5 my-auto py-8">
-      <button data-tab-target="overview" onclick="selectMobileTab('overview')" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-base flex items-center justify-between transition-all shadow-md">
+      <button data-tab-target="overview" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-amber-400 bg-amber-500/10 border border-amber-500/30 font-bold text-base flex items-center justify-between transition-all shadow-md">
         <span class="flex items-center gap-3.5"><i data-lucide="layout-dashboard" class="w-5 h-5"></i> Overview</span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-amber-400/60"></i>
       </button>
-      <button data-tab-target="tournaments" onclick="selectMobileTab('tournaments')" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+      <button data-tab-target="tournaments" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
         <span class="flex items-center gap-3.5"><i data-lucide="shield" class="w-5 h-5 text-amber-400"></i> Tournaments</span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
       </button>
-      <button data-tab-target="matches" onclick="selectMobileTab('matches')" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+      <button data-tab-target="matches" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
         <span class="flex items-center gap-3.5"><i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i> Matches & Results</span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
       </button>
-      <button data-tab-target="leaderboard" onclick="selectMobileTab('leaderboard')" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+      <button data-tab-target="leaderboard" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
         <span class="flex items-center gap-3.5"><i data-lucide="award" class="w-5 h-5 text-amber-400"></i> Leaderboard & Caps</span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
       </button>
-      <button data-tab-target="players" onclick="selectMobileTab('players')" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
+      <button data-tab-target="players" class="tab-btn-mobile w-full text-left py-4 px-5 rounded-2xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 font-bold text-base flex items-center justify-between transition-all">
         <span class="flex items-center gap-3.5"><i data-lucide="users" class="w-5 h-5 text-amber-400"></i> Squad Profiles</span>
         <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
       </button>
@@ -220,7 +245,7 @@
   </div>
 
   <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
 
     <!-- TAB 1: OVERVIEW -->
     <div id="tab-panel-overview" class="tab-content-panel space-y-6">
@@ -240,17 +265,17 @@
           <div class="bg-slate-900/80 border border-emerald-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Matches Won</span>
             <div class="text-2xl font-black text-emerald-400 font-mono" id="stat-matches-won">2</div>
-            <span class="text-[10px] text-emerald-500/80">Wins vs Stars & Royals</span>
+            <span class="text-[10px] text-emerald-500/80">Across all tournaments</span>
           </div>
           <div class="bg-slate-900/80 border border-rose-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Matches Lost</span>
             <div class="text-2xl font-black text-rose-400 font-mono" id="stat-matches-lost">1</div>
-            <span class="text-[10px] text-rose-400/80">vs Nemo Rising</span>
+            <span class="text-[10px] text-rose-400/80">Across all tournaments</span>
           </div>
           <div class="bg-slate-900/80 border border-amber-900/40 rounded-2xl p-4 shadow-md">
             <span class="text-xs text-slate-400 block mb-1">Win Rate</span>
             <div class="text-2xl font-black text-amber-400 font-mono" id="stat-win-rate">67%</div>
-            <span class="text-[10px] text-amber-300">Strong Season Start</span>
+            <span class="text-[10px] text-amber-300">Completed fixtures</span>
           </div>
         </div>
       </div>
@@ -727,7 +752,7 @@
       <!-- Batting Summary Grid -->
       <div class="mb-4">
         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-2">Batting Statistics</span>
-        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
           <div>
             <span class="text-[10px] text-slate-400 block">Matches</span>
             <span id="modal-stat-matches" class="font-mono font-bold text-white text-sm">-</span>
@@ -754,7 +779,7 @@
       <!-- Bowling Summary Grid -->
       <div class="mb-5">
         <span class="text-xs font-bold text-purple-400 uppercase tracking-wider block mb-2">Bowling & Fielding</span>
-        <div class="grid grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
           <div>
             <span class="text-[10px] text-slate-400 block">Wickets</span>
             <span id="modal-stat-wkts" class="font-mono font-bold text-purple-400 text-sm">-</span>
@@ -814,6 +839,7 @@
   <!-- Bundled Local / Offline Data -->
   <script src="data.js"></script>
   <!-- App Logic -->
+  <script src="stats.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
