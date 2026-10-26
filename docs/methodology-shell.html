@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="crc-mvp-version" content="2.0">
+  <meta name="description" content="CRC MVP v2.0: approved formulas, scoring tables, examples and glossary.">
+  <title>MVP Methodology v2.0 | CRC Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:2rem}
+    * {box-sizing:border-box}
+    body {margin:0;background:#0b0f19;color:#e2e8f0;font:400 1rem/1.75 'Outfit',sans-serif}
+    a {color:#fbbf24;text-underline-offset:.2em}
+    a:hover {color:#fde68a}
+    a:focus-visible,summary:focus-visible,[tabindex]:focus-visible {outline:2px solid #fbbf24;outline-offset:5px}
+    .skip {position:absolute;left:1rem;top:-6rem;padding:.75rem;background:#0f172a;z-index:2}
+    .skip:focus {top:1rem}
+    header {border-bottom:1px solid #1e293b;background:#020617}
+    .header-inner {max-width:1180px;margin:auto;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .brand {font-weight:800;color:#f1f5f9;text-decoration:none}
+    .version {font-size:.8rem;color:#fbbf24;border:1px solid #785b25;border-radius:2rem;padding:.25rem .75rem;white-space:nowrap}
+    .layout {max-width:1180px;margin:2rem auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:2rem;padding:0 1.5rem}
+    .contents {align-self:start;background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1.25rem;font-size:.9rem}
+    .contents strong {display:block;margin-bottom:.75rem;color:#f1f5f9}
+    .contents nav {display:grid;gap:.65rem}
+    .contents a {text-decoration:none}
+    article {min-width:0;max-width:820px}
+    h1 {color:#f8fafc;font-size:clamp(1.85rem,5vw,2.7rem);line-height:1.2;margin:0 0 1rem;font-weight:800}
+    h2 {font-size:1.45rem;line-height:1.35;color:#f8fafc;border-top:1px solid #334155;margin:2.5rem 0 1rem;padding-top:1.75rem}
+    h3 {font-size:1.1rem;color:#fbbf24;margin:1.75rem 0 .75rem}
+    p {margin:.9rem 0}
+    strong {color:#f8fafc}
+    ul {padding-left:1.4rem}
+    li {margin:.5rem 0}
+    .note,.formula,.example {background:#0f172a;border:1px solid #334155;border-radius:.8rem;padding:1rem 1.2rem;margin:1.25rem 0}
+    .note {border-left:3px solid #fbbf24}
+    .formula {font-family:'JetBrains Mono',monospace;font-size:.9rem;overflow-wrap:anywhere;border-color:#785b25}
+    .example {background:#111b2e}
+    summary {cursor:pointer;font-weight:600;color:#fbbf24;line-height:1.5;padding:.3rem 0}
+    details[open]>summary {margin-bottom:1rem}
+    .table-scroll {max-width:100%;overflow-x:auto;border:1px solid #334155;border-radius:.8rem;margin:1.25rem 0;overscroll-behavior-x:contain}
+    table {border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem;line-height:1.5;background:#0f172a}
+    th,td {padding:.8rem 1rem;text-align:left;vertical-align:top;border-bottom:1px solid #1e293b}
+    th {background:#1e293b;color:#f8fafc;font-weight:600}
+    tr:last-child td {border-bottom:0}
+    tbody tr:nth-child(even) {background:#131e32}
+    dl {display:grid;grid-template-columns:minmax(100px,1fr) 3fr;gap:.75rem 1.5rem}
+    dt {font-weight:600;color:#f8fafc}
+    dd {margin:0}
+    footer {border-top:1px solid #1e293b;padding:1.5rem;text-align:center;font-size:.9rem;color:#94a3b8}
+    hr {border:0;border-top:1px solid #334155;margin-top:2rem}
+    @media(max-width:800px) {.layout {grid-template-columns:minmax(0,1fr);gap:1.5rem;margin-top:1.5rem}.contents nav {grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:480px) {.layout {padding:0 1rem}.header-inner {padding:1rem}.contents nav {grid-template-columns:minmax(0,1fr)}.example,.formula,.note {padding:.85rem}th,td {padding:.7rem}.version {font-size:.75rem}dl {grid-template-columns:minmax(0,1fr);gap:.25rem}dd {margin-bottom:.75rem}}
+    @media(prefers-reduced-motion:reduce) {:root {scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#methodology">Skip to methodology</a>
+  <header><div class="header-inner"><a class="brand" href="index.html">CRC Analytics</a><span class="version">CRC MVP v2.0</span><a href="index.html#leaderboard">Back to MVP rankings</a></div></header>
+  <main class="layout" id="methodology">
+    <aside class="contents"><strong>On this page</strong><nav aria-label="Methodology sections">{{CONTENTS}}<a href="#glossary">Glossary</a></nav><p>Tables: swipe for all columns.</p><a href="docs/CRC_MVP_v2_Methodology_ASD_STE100_Style.md" download>Download the approved guide</a></aside>
+    <article aria-label="Approved CRC MVP v2.0 methodology">
+{{BODY}}
+{{GLOSSARY}}
+    </article>
+  </main>
+  <footer>CRC Analytics · CRC MVP v2.0 · <a href="index.html">Back to CRC Analytics</a></footer>
+</body>
+</html>
