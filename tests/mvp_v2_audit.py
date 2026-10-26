@@ -20,7 +20,7 @@ def audit():
         clean = re.sub(r'\s*\((?:c|wk)\)', '', raw, flags=re.I).strip()
         return aliases.get(clean.casefold(), clean)
 
-    season = {p['name']: dict(matches=0, points=Q(0), potm=0) for p in roster}
+    season = {p['name']: dict(matches=0, points=Q(0), battingImpact=Q(0), bowlingImpact=Q(0), fieldingImpact=Q(0), potm=0) for p in roster}
     matches = []
     for path in sorted((ROOT / 'data/matches').glob('*.json')):
         m = json.loads(path.read_text())
@@ -51,17 +51,23 @@ def audit():
         for b in opp['batting']:
             d = b.get('dismissal', '')
             if found := re.fullmatch(r'c & b (.+)', d, re.I):
-                record(found[1])['fieldPts'] += 10
+                record(found[1])['fieldPts'] += 8
             elif found := re.match(r'^c (.+?) b ', d, re.I):
-                record(found[1])['fieldPts'] += 10
-            if found := re.search(r'run\s?out\s*\(([^)]+)\)', d, re.I):
-                for fielder in found[1].split('/'):
-                    record(fielder)['fieldPts'] += 15
+                record(found[1])['fieldPts'] += 8
+            if re.search(r'run\s?out', d, re.I):
+                found = re.search(r'run\s?out\s*\(([^)]+)\)', d, re.I)
+                primary = b.get('runoutFielder')
+                if not primary and found and not re.search(r'[/,&]|\s+and\s+', found[1], re.I):
+                    primary = found[1]
+                if primary:
+                    record(primary)['fieldPts'] += 12
             if found := re.match(r'^st (.+?) b ', d, re.I):
                 record(found[1])['fieldPts'] += 12
         for p in scores.values():
             p['totalPts'] = p['batPts'] + p['bowlPts'] + p['fieldPts']
             season[p['name']]['points'] += p['totalPts']
+            for component, key in [('battingImpact','batPts'),('bowlingImpact','bowlPts'),('fieldingImpact','fieldPts')]:
+                season[p['name']][component] += p[key]
         for n in set(map(name, m['crcPlayingXI'])):
             season[n]['matches'] += 1
         if m.get('playerOfTheMatch') and name(m['playerOfTheMatch']) in season:
