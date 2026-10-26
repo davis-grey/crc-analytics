@@ -157,6 +157,14 @@ def check_all(team, players, tournaments, matches):
                         error(iloc, f'Invalid batting {field} for {bat.get("player", "?")}')
                 if inning.get('shortName') == 'CRC' and bat.get('player', '').casefold() not in aliases:
                     error(iloc, f'Unknown CRC batter {bat.get("player")!r}')
+                if 'runoutFielder' in bat:
+                    primary = bat['runoutFielder']
+                    if (not isinstance(primary, str) or not primary.strip()
+                            or re.search(r'[/,&]|\s+and\s+', primary, re.I)
+                            or not re.search(r'run\s?out', bat.get('dismissal', ''), re.I)):
+                        error(iloc, 'runoutFielder must identify one verified primary fielder for a run-out')
+                    elif inning.get('shortName') != 'CRC' and primary.casefold().strip() not in aliases:
+                        error(iloc, f'Unknown CRC primary run-out fielder {primary!r}')
             for bowl in bowling:
                 try:
                     overs_to_balls(bowl['overs'])
