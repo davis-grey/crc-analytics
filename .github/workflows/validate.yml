@@ -21,6 +21,8 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Browser logic regression tests
         run: node tests/test_app.cjs
+      - name: MVP v2 independent audit and formula tests
+        run: node tests/test_mvp_v2.cjs
       - name: JavaScript parse checks
         run: |
           node --check app.js
