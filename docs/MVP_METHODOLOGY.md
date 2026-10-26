@@ -23,11 +23,11 @@ Milestones are additive: +5 when runs ≥ scheduled overs × 3, and +5 more when
 
 `20 × wickets + dots + 12 × maidens + 1.5 × [legal balls bowled × Match RPB − runs conceded]`
 
-Use **bowler-credited wickets** and **bowling runs conceded** from the scorecard. Run-outs do not give bowler wickets. Charged wides/no-balls remain in conceded runs; byes/leg-byes are included in the innings baseline but excluded from bowling runs when the scorer excludes them. No fixed economy bonus or multi-over multiplier. Recorded dot balls and maidens are used; wicket deliveries are not guessed to be additional dots.
+Use **bowler-credited wickets** and **bowling runs conceded** from the scorecard. Run-outs do not give bowler wickets. Charged wides/no-balls remain in conceded runs; byes/leg-byes are included in the innings baseline but excluded from bowling runs when the scorer excludes them. No fixed economy bonus, multi-over multiplier, wicket-haul bonus or multi-wicket-over bonus. Recorded dot balls and maidens are used; wicket deliveries are not guessed to be additional dots.
 
 ### Fielding
 
-Catch +10; run-out +15; stumping +12. Caught-and-bowled earns a wicket through bowling figures and a catch through dismissal credit. Existing dismissal conventions are preserved. When a run-out names multiple credited fielders separated by `/`, each gets +15 under the existing import convention; no sharing fraction has been specified. Unnamed run-outs cannot be assigned a fielder. None of the seven fixtures has a shared CRC run-out credit.
+Catch +8; run-out +12; stumping +12. Caught-and-bowled earns a wicket through bowling figures and a catch through dismissal credit. Credit each run-out once, in full, to the primary fielder identified by the scoring source. Do not distinguish direct hits/assists, split points, infer a keeper/bowler assist or award multiple credits. A single named dismissal identifies that credited fielder. If a legacy dismissal lists multiple names, leave the fielding points unattributed unless source evidence explicitly identifies the primary fielder; optional per-batter `runoutFielder` metadata records that verified identity without changing the dismissal. Missing names remain unattributed. None of the seven fixtures has a multiple-name CRC run-out requiring disambiguation.
 
 ### Totals and rankings
 
@@ -38,6 +38,10 @@ Top Batter, Bowler and Fielder use their respective impact points, not raw runs,
 Negative disciplines and totals are retained, including negative winners when everyone scores below zero. Keep JS number precision internally, without per-match or per-season rounding. Format point displays to one decimal. Rounded values can look tied while underlying scores differ; rank on full precision. Floating-point representation noise (16 scaled machine epsilons) is treated as equality, not a decimal rounding rule. Alphabetical order is presentation only within ties.
 
 Use competition ranks (1, 1, 3); every player tied within the top three ranks appears in the podium. All first-place players receive WINNER, with no joint-winner label. Season ranking and shared leader names follow the same precision/tie policy.
+
+## Impact displays
+
+Match scorecards show a clearly labelled Impact column alongside traditional batting and bowling figures, in original scorecard order. Season batting/bowling tables add numeric-sortable Impact columns while defaulting to runs/wickets for Orange/Purple Cap races. Season components sum the same unrounded match components used by MVP. Profiles show cumulative batting, bowling and fielding impact and match-history breakdowns. Tables scroll horizontally within their mobile container; point values use one decimal and retain negatives.
 
 ## Historical reference: v1.0 (archived, not executed)
 
@@ -53,8 +57,8 @@ Use competition ranks (1, 1, 3); every player tied within the top three ranks ap
 
 `tests/mvp_v2_audit.py` is an independent **test-only** oracle using exact rational arithmetic and reading canonical match files directly. It is not loaded by the app or build. `tests/test_mvp_v2.cjs` checks every player's score against it and covers focused formula/precision/ranking cases. No expected winner is hardcoded in the application.
 
-Macroom reference: Jenson's bowling contribution is 42.384615..., but the opposition batting record separately contains `runout (Jenson)`. His complete statistical MVP is **57.384615... = 57.4**, including +15 fielding. The supplied 42.4 reference omits that run-out. Preserve the record pending any verified correction from the original scorecard. Original PDF/screenshot evidence was not supplied with this implementation request; the audit verifies the canonical JSON, not fresh extraction from scorecards.
+Macroom reference: Jenson's bowling contribution is 42.384615..., but the opposition batting record separately contains `runout (Jenson)`. His complete statistical MVP is **54.384615... = 54.4**, including +12 fielding under the final weights. The earlier 42.4 reference omits that run-out; the previous draft 57.4 used the now-superseded +15 run-out weight. Preserve the record pending any verified correction from the original scorecard. Original PDF/screenshot evidence was not supplied with this implementation request; the audit verifies the canonical JSON, not fresh extraction from scorecards.
 
 ## Future enhancement (parked)
 
-**Average MVP Points per Appearance / Most impactful player per match** remains a documented future enhancement. It is not calculated, exposed in the UI, or implemented in this release.
+**Average MVP Points per Appearance / Most Impactful Player per Match** and **bowling achievement badges for 2-wicket hauls, 2-wicket overs and 3-wicket hauls** remain backlog items, not implemented. Any future bowling recognition badges must add zero MVP points. See `BACKLOG.md`.
