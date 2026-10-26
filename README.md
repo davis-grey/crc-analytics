@@ -46,6 +46,7 @@ The existing seven match JSON files are now complete canonical records. The prev
    python scripts/validate_data.py
    python -m unittest discover -s tests -v
    node tests/test_app.cjs
+   node tests/test_mvp_v2.cjs
    ```
 7. Push to your GitHub Pages publishing branch after review. The GitHub Actions workflow runs the same validation and regression tests on pushes and pull requests.
 
