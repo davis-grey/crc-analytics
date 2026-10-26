@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from datetime import date
 import sys
@@ -102,6 +103,12 @@ def check_all(team, players, tournaments, matches):
         for field in ('matchTitle', 'date', 'format', 'outcome', 'result', 'tournamentId'):
             if not match.get(field):
                 error(location, f'Missing {field}')
+        # MVP milestones need the scheduled innings limit, not actual innings overs.
+        schedule_text = re.search(r'(\d+(?:\.\d+)?)\s*overs?\b', match.get('format') or '', re.I)
+        schedule = match.get('scheduledOvers', float(schedule_text[1]) if schedule_text else None)
+        if (isinstance(schedule, bool) or not isinstance(schedule, (int, float))
+                or not math.isfinite(schedule) or schedule <= 0 or not float(schedule * 6).is_integer()):
+            error(location, 'Missing or invalid scheduled overs: set numeric scheduledOvers or include the limit in format')
         try:
             date.fromisoformat(match.get('date', ''))
         except (ValueError, TypeError):
