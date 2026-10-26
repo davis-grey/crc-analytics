@@ -37,9 +37,13 @@ const server=http.createServer((req,res)=>{
       } else await page.locator('nav [data-tab-target="leaderboard"]').click();
       for(const id of ['leaderboard-batting-body','leaderboard-bowling-body']) {
         const table=page.locator('#'+id).locator('..');
-        assert.equal(await table.getByRole('columnheader',{name:'Impact',exact:false}).count(),1);
+        const section=table.locator('xpath=ancestor::details');
+        if(!await section.evaluate(e=>e.open))await section.locator('summary').click();
+        const impactHeader=table.locator('th').filter({hasText:/^Impact\s/});
+        await impactHeader.waitFor({state:'visible'});
+        assert.equal(await impactHeader.count(),1);
         assert.ok(await table.locator('tbody tr').count()>0);
-        await table.getByRole('columnheader',{name:'Impact',exact:false}).click();
+        await impactHeader.click();
         // Impact is a real numeric sort, not formatted-string ordering.
         const values=await table.locator('tbody tr').evaluateAll(rows=>rows.map(r=>Number(r.children[2].textContent.trim())));
         assert.deepEqual(values,[...values].sort((a,b)=>b-a));
