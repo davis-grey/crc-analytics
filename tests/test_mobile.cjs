@@ -87,6 +87,25 @@ const server=http.createServer((req,res)=>{
       await noOverflow('formula modal');
       assert.deepEqual(errors,[],`${width}px: application errors`);
       console.log(`PASS: ${width}px — all 7 match awards/scorecards, Impact sorting, profiles, formula, no overflow or podium overlaps`);
+      await page.goto(origin+'/methodology.html',{waitUntil:'networkidle'});
+      assert.equal(await page.locator('meta[name="crc-mvp-version"]').getAttribute('content'),'2.0');
+      await page.getByRole('heading',{name:'How CRC MVP Points Work',exact:true}).waitFor();
+      await noOverflow('methodology');
+      assert.equal(await page.locator('article details').count(),4);
+      for(const example of await page.locator('article details').all()) {
+        await example.locator('summary').click();
+        assert.equal(await example.evaluate(e=>e.open),true);
+      }
+      await noOverflow('expanded methodology examples');
+      assert.ok(await page.locator('article table').count()>=7);
+      await page.getByRole('heading',{name:'Glossary',exact:true}).waitFor();
+      await page.screenshot({path:path.join(output,`methodology-${width}.png`),fullPage:true});
+      await page.getByRole('link',{name:'Back to MVP rankings',exact:true}).click();
+      await page.locator('#tab-panel-leaderboard').waitFor({state:'visible'});
+      await page.locator('#tab-panel-leaderboard a[href="methodology.html"]').click();
+      await page.getByRole('heading',{name:'How CRC MVP Points Work',exact:true}).waitFor();
+      assert.deepEqual(errors,[],`${width}px: methodology/navigation errors`);
+      console.log(`PASS: ${width}px — approved methodology, expandable examples, glossary, internal table scrolling and rankings return link`);
       await page.close();
     }
   } finally {await browser.close();server.close();}
