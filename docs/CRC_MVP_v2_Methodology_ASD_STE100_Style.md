@@ -10,6 +10,21 @@ This is a CRC scoring system. It is **not** the official CricHeroes MVP formula.
 
 > **Important:** An official Player of the Match (POTM) award is a separate honor. It does not add MVP points.
 
+## Quick Reference: Point System at a Glance
+
+| Category | Event / Calculation | MVP Points |
+|---|---|---|
+| Batting | Each run scored | +1.0 |
+| Batting | Boundary bonus (Four / Six) | +1.0 / +2.0 |
+| Batting | Milestone 1 (Runs ≥ Scheduled Overs × 3) | +5.0 |
+| Batting | Milestone 2 (Runs ≥ Scheduled Overs × 5) | +5.0 more (+10.0 total) |
+| Batting | Strike-rate (SR) impact | Runs − (Balls Faced × Match RPB) |
+| Bowling | Each bowler-credited wicket | +20.0 |
+| Bowling | Each dot ball / maiden over | +1.0 / +12.0 |
+| Bowling | Runs saved impact | 1.5 × [(Legal Balls × Match RPB) − Runs Conceded] |
+| Fielding | Catch / Stumping / Run-out | +8.0 / +12.0 / +12.0 |
+| Honors | Official Player of the Match (POTM) | Tracked separately (0.0 pts) |
+
 ## 1. Why CRC uses this method
 
 A run, a wicket, and a catch are different cricket events. A fair score must give credit for these events.
@@ -28,9 +43,9 @@ The formula does not measure every match situation. For example, it does not cal
 
 ## 2. Establish the match baseline
 
-Use the final scores of both teams. Include all runs in the official innings totals, including extras.
+The system uses the final scores of both teams. It includes all runs in the official innings totals, including extras.
 
-Use only **legal deliveries** to calculate the match scoring rate. A wide or no-ball is not a legal delivery.
+Only **legal deliveries** count toward the match scoring rate. A wide or no-ball is not a legal delivery.
 
 **Match runs per ball (RPB)** = Both teams' total runs ÷ Both teams' total legal deliveries.
 
@@ -45,7 +60,7 @@ Use only **legal deliveries** to calculate the match scoring rate. A wide or no-
 - Match RPB = 59 ÷ 52 = **1.134615...**.
 - Match RPO = 1.134615... × 6 = **6.807692...**.
 
-Use the full values for all calculations. Round values only when you show them on the page.
+CRC Analytics uses full precision for all internal calculations and rounds values only when displaying them on the page.
 
 ## 3. Calculate batting impact
 
@@ -74,10 +89,10 @@ CRC also gives small bonuses for boundaries. Boundaries are useful in short matc
 
 ### How batting milestones work
 
-Use the **scheduled overs per innings**. Do not use the number of overs played in a shortened chase.
+Milestones use the **scheduled overs per innings**, not the number of overs played in a shortened chase.
 
-- First milestone: Give **+5** when runs are at least scheduled overs × 3.
-- Second milestone: Give **+5 more** when runs are at least scheduled overs × 5.
+- First milestone: Awards **+5** when runs are at least scheduled overs × 3.
+- Second milestone: Awards **+5 more** when runs are at least scheduled overs × 5.
 
 | Scheduled overs | First milestone (+5) | Second milestone (+5 more) |
 |---:|---:|---:|
@@ -104,7 +119,7 @@ Jenson scored **29 runs from 18 balls**. He hit **one four and three sixes**.
 | First milestone | 29 ≥ 15 | +5.0 |
 | Second milestone | 29 ≥ 25 | +5.0 |
 | SR impact | 29 − (18 × 71 ÷ 54) | +5.3 |
-| **Total batting impact** | **Calculate before rounding** | **51.3** |
+| **Total batting impact** | **Calculated before rounding** | **51.3** |
 
 Jenson scored faster than the match rate. The formula gives him extra points for that speed.
 
@@ -151,7 +166,7 @@ Davison bowled **six legal balls**. He took **two wickets** and bowled **four do
 | Dot balls | 4 × 1 | +4.0 |
 | Maiden overs | None | +0.0 |
 | Runs saved | 1.5 × [(6 × 71 ÷ 54) − 2] | +8.8 |
-| **Total bowling impact** | **Calculate before rounding** | **52.8** |
+| **Total bowling impact** | **Calculated before rounding** | **52.8** |
 
 Jenson scored **51.3 batting points** in the same match. Davison scored **52.8 bowling points**.
 
@@ -195,7 +210,7 @@ CRC gives all **12 points** to the primary fielder in the official scorecard. CR
 
 CRC does not use different scores for direct-hit and assisted run-outs.
 
-If no fielder is named, keep the run-out in the scorecard. Do not assign fielding points to an unknown player.
+If no fielder is named on the scorecard, the run-out remains on the team record, but no fielding points are assigned.
 
 A caught-and-bowled dismissal gives a bowler-credited wicket and a catch to the same player when the scorecard confirms both events.
 
@@ -283,7 +298,7 @@ CRC records official awards separately. This keeps match honors independent of s
 
 An Orange Cap leader does not have to lead the batting impact ranking. A Purple Cap leader does not have to lead bowling impact.
 
-Traditional statistics and impact points answer different questions. Show both when the data is available.
+Traditional statistics and impact points answer different questions, so the app displays both whenever the data is available.
 
 ### Ties and display values
 
@@ -305,16 +320,16 @@ CRC can add a separate **average MVP points per appearance** leaderboard in a fu
 
 ## 10. Data rules
 
-Use the official scorecard data. Do not guess missing player names, catches, wickets, or overs.
+All rankings use the official scorecard data. CRC Analytics never guesses missing player names, catches, wickets, or overs.
 
-Calculate cricket overs from legal balls. **3.4 overs means 22 legal balls**, not 3.4 decimal overs.
+Cricket overs are calculated from legal balls. **3.4 overs means 22 legal balls**, not 3.4 decimal overs.
 
 A wide or no-ball is not a legal delivery. A no-ball can still count as a ball faced by the batter in the source scorecard.
 
-For bowling impact, use the runs charged to the bowler in the scorecard. Do not substitute the innings total for bowler runs.
+For bowling impact, the calculation uses the runs charged to the bowler in the scorecard rather than the innings total.
 
-Use the scheduled overs for batting milestones. Use the actual legal deliveries for the match baseline and bowling impact.
+Batting milestones use the scheduled overs, while the match baseline and bowling impact use the actual legal deliveries bowled.
 
 ---
 
-**Method:** CRC MVP v2.0. **Status:** Approved scoring specification; publish this page with the v2.0 application release.
+**Method:** CRC MVP v2.0 | **Status:** Active scoring specification.
