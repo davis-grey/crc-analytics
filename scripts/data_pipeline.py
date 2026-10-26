@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 from datetime import date
 import sys
@@ -102,6 +103,12 @@ def check_all(team, players, tournaments, matches):
         for field in ('matchTitle', 'date', 'format', 'outcome', 'result', 'tournamentId'):
             if not match.get(field):
                 error(location, f'Missing {field}')
+        # MVP milestones need the scheduled innings limit, not actual innings overs.
+        schedule_text = re.search(r'(\d+(?:\.\d+)?)\s*overs?\b', match.get('format') or '', re.I)
+        schedule = match.get('scheduledOvers', float(schedule_text[1]) if schedule_text else None)
+        if (isinstance(schedule, bool) or not isinstance(schedule, (int, float))
+                or not math.isfinite(schedule) or schedule <= 0 or not float(schedule * 6).is_integer()):
+            error(location, 'Missing or invalid scheduled overs: set numeric scheduledOvers or include the limit in format')
         try:
             date.fromisoformat(match.get('date', ''))
         except (ValueError, TypeError):
@@ -150,6 +157,14 @@ def check_all(team, players, tournaments, matches):
                         error(iloc, f'Invalid batting {field} for {bat.get("player", "?")}')
                 if inning.get('shortName') == 'CRC' and bat.get('player', '').casefold() not in aliases:
                     error(iloc, f'Unknown CRC batter {bat.get("player")!r}')
+                if 'runoutFielder' in bat:
+                    primary = bat['runoutFielder']
+                    if (not isinstance(primary, str) or not primary.strip()
+                            or re.search(r'[/,&]|\s+and\s+', primary, re.I)
+                            or not re.search(r'run\s?out', bat.get('dismissal', ''), re.I)):
+                        error(iloc, 'runoutFielder must identify one verified primary fielder for a run-out')
+                    elif inning.get('shortName') != 'CRC' and primary.casefold().strip() not in aliases:
+                        error(iloc, f'Unknown CRC primary run-out fielder {primary!r}')
             for bowl in bowling:
                 try:
                     overs_to_balls(bowl['overs'])

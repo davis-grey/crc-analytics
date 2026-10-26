@@ -1,3 +1,9 @@
+# Current review: CRC MVP v2.0 — 26 October 2026
+
+See [v2 release review](docs/MVP_V2_RELEASE_REVIEW.md) for recalculated standings, tests and remaining visual review. No production merge is authorised for this branch.
+
+The following checks are archived from the previous v1 release. Their statements about preserved MVP totals apply only to that release.
+
 # Release checks — 25 October 2026
 
 Source: ZIP snapshot supplied by the user, dated 24 October 2026. No changes have been pushed to GitHub.
