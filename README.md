@@ -27,7 +27,7 @@ Scorecard → AI extraction + manual review → data/matches/<match>.json
                                                                   └→ app.js (views + events)
 ```
 
-The existing seven match JSON files are now complete canonical records. The previous three incomplete Nemo match records have been synchronised from the originally published `all_matches.json`; **no published match scores or historical MVP totals were changed**.
+The existing seven match JSON files are now complete canonical records. The previous three incomplete Nemo match records have been synchronised from the originally published `all_matches.json`; **no published match scores were changed**. Current MVP points and discipline honours are intentionally recalculated under v2.0; the old v1 snapshot is retained for reference.
 
 ## Updating scores or adding matches
 
@@ -67,7 +67,7 @@ Validation **blocks** missing/duplicate match or tournament IDs, unknown CRC ros
 
 The previously flagged CSK 8-a-side lineups and no-ball deliveries were resolved using team-provided confirmation; see [`data/DATA_QUALITY.md`](data/DATA_QUALITY.md). Current datasets validate with no errors or warnings. Never change scorer data merely to silence a validator.
 
-`tests/legacy_stats_snapshot.json` locks in the verified seven-match MVP calculations and season totals, including corrected CSK match appearances (Joy D and Rifaz). Unit tests also cover legal-ball conversion, sorting, aliases, new tournaments, filtering and invalid input. An intentional rule change must be reviewed and then documented by updating this snapshot.
+`tests/legacy_stats_snapshot.json` preserves archived v1.0 output and protects unchanged raw statistics and official POTM counts. Current v2.0 scores are independently audited from canonical JSON with exact rational arithmetic by `tests/mvp_v2_audit.py`; `tests/test_mvp_v2.cjs` compares every match/player and tests negative scores, milestones, multiple overs, precision and ties. Do not overwrite the historical v1 snapshot to hide intentional methodology changes.
 
 ## Code structure
 
@@ -86,3 +86,11 @@ The previously flagged CSK 8-a-side lineups and no-ball deliveries were resolved
 - Mobile changes were inspected from source and tested in browserless regression checks; **a complete live browser screenshot/device audit has not been completed**.
 
 These constraints do **not** prevent you from adding a new tournament entirely through data.
+
+## Statistical MVP v2.0
+
+Current rankings use [CRC MVP v2.0](docs/MVP_METHODOLOGY.md): match scoring baseline, strike rate impact, runs saved impact, scheduled-over milestones, 20 points per bowler wicket, and unchanged fielding weights. Statistical MVP and official POTM are distinct: **POTM adds zero MVP points**. Negative values are retained; only point displays round to one decimal. Season MVP sums unrounded match totals in the same central `stats.js` engine.
+
+Top Batter/Bowler/Fielder use discipline impact. Orange/Purple Caps still use runs/wickets. See the [seven-match recalculation and season standings](docs/MVP_V2_RELEASE_REVIEW.md), including the Macroom run-out discrepancy. Historical scores, lineups and awards are unchanged. This is a review branch; production must not be merged until reviewed.
+
+The proposed **Average MVP Points per Appearance** feature remains parked and unimplemented.

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cork Royal Challengers - Cricket Match & Stats Hub</title>
-  <meta name="crc-release" content="2026-10-25-winner-badge-fix-v2">
+  <meta name="crc-release" content="2026-10-26-mvp-v2-review">
   <meta name="description" content="Official stats, match scorecards, tournaments, and player leaderboards for Cork Royal Challengers Cricket Club, Cork, Ireland.">
 
   <!-- Fonts & Icons -->
@@ -380,7 +380,7 @@
               </div>
               <div id="award-top-batter-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
             </div>
-            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Top Match Scorer</span>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Batting Impact Wins</span>
           </div>
 
           <!-- Top Bowler Award Leader Card -->
@@ -392,7 +392,7 @@
               </div>
               <div id="award-top-bowler-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
             </div>
-            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Top Match Wicket Taker</span>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Bowling Impact Wins</span>
           </div>
 
           <!-- Top Fielder Award Leader Card -->
@@ -404,7 +404,7 @@
               </div>
               <div id="award-top-fielder-name" class="space-y-1 my-1.5 min-h-[32px]">--</div>
             </div>
-            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Match Dismissals</span>
+            <span class="text-[10px] text-slate-400 block pt-1.5 border-t border-slate-800/60">Most Fielding Impact Wins</span>
           </div>
         </div>
       </div>
@@ -474,8 +474,8 @@
             ⭐
           </div>
           <div>
-            <h4 class="text-sm font-bold text-white">Cork Royal Challengers MVP Impact Points</h4>
-            <p class="text-xs text-slate-400">Runs (1) • 4s (1) • 6s (2) • Wickets (25) • Maidens (12) • Catches (10) • POTM (20)</p>
+            <h4 class="text-sm font-bold text-white">CRC Statistical MVP v2.0</h4>
+            <p class="text-xs text-slate-400">Batting + bowling + fielding impact • Match scoring baseline • Official POTM: zero points</p>
           </div>
         </div>
         <button onclick="openMvpExplainerModal()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors">
@@ -670,8 +670,8 @@
         <div class="flex items-center gap-2.5">
           <span class="text-2xl">⭐</span>
           <div>
-            <h3 class="text-lg font-black text-white">How Club MVP Points Work</h3>
-            <p class="text-xs text-slate-400">Fair impact rating across Batting, Bowling, and Fielding</p>
+            <h3 class="text-lg font-black text-white">How CRC MVP v2.0 Works</h3>
+            <p class="text-xs text-slate-400">Statistical impact across batting, bowling and fielding</p>
           </div>
         </div>
         <button onclick="closeMvpExplainerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
@@ -679,52 +679,31 @@
         </button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-4 text-xs leading-relaxed">
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-amber-500/30">
-          <h4 class="font-bold text-amber-400 text-sm mb-2 flex items-center gap-1.5">
-            <i data-lucide="zap" class="w-4 h-4"></i> Batting Points
-          </h4>
-          <ul class="space-y-1.5 text-slate-300">
-            <li class="flex justify-between"><span>Each Run Scored:</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
-            <li class="flex justify-between"><span>Four (4s Bonus):</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
-            <li class="flex justify-between"><span>Six (6s Bonus):</span> <strong class="text-amber-400 font-mono">+2.0 pts</strong></li>
-            <li class="flex justify-between"><span>Score 25+ Runs (Milestone):</span> <strong class="text-emerald-400 font-mono">+10.0 pts</strong></li>
-          </ul>
+          <h4 class="font-bold text-amber-400 text-sm mb-2">CRC MVP v2.0 — Match Baseline</h4>
+          <p>Match RPB = both teams’ total runs (including extras) / both teams’ legal balls. Match RPO = RPB × 6. Wides and no-balls do not add legal balls.</p>
         </div>
-
+        <div class="p-3.5 rounded-xl bg-slate-950/70 border border-amber-500/30">
+          <h4 class="font-bold text-amber-400 text-sm mb-2">Batting Impact</h4>
+          <p>Runs + fours + (2 × sixes) + milestones + strike rate impact.</p>
+          <p class="mt-2">Milestones: +5 at scheduled overs × 3 runs, then +5 more at scheduled overs × 5 runs. Use the scheduled limit, not the length of the chase.</p>
+          <p class="mt-2">Strike rate impact = runs − (balls faced × Match RPB). Batter balls faced use the recorded scorecard convention, including any recorded no-ball deliveries.</p>
+        </div>
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-purple-500/30">
-          <h4 class="font-bold text-purple-400 text-sm mb-2 flex items-center gap-1.5">
-            <i data-lucide="target" class="w-4 h-4"></i> Bowling Points
-          </h4>
-          <ul class="space-y-1.5 text-slate-300">
-            <li class="flex justify-between"><span>Each Wicket Taken:</span> <strong class="text-purple-400 font-mono font-bold">+25.0 pts</strong></li>
-            <li class="flex justify-between"><span>Maiden Over Bowled:</span> <strong class="text-white font-mono">+12.0 pts</strong></li>
-            <li class="flex justify-between"><span>Dot Ball Bowled:</span> <strong class="text-white font-mono">+1.0 pt</strong></li>
-            <li class="flex justify-between"><span>Economy ≤ 6.00 RPO (min 1 over):</span> <strong class="text-emerald-400 font-mono">+10.0 pts</strong></li>
-          </ul>
+          <h4 class="font-bold text-purple-400 text-sm mb-2">Bowling Impact</h4>
+          <p>(20 × bowler-credited wickets) + dots + (12 × maidens) + runs saved impact.</p>
+          <p class="mt-2">Runs saved impact = 1.5 × [(legal balls bowled × Match RPB) − runs conceded]. Use scorecard bowling runs, including charged wides and no-balls. Run-outs do not give a bowler wicket.</p>
+          <p class="mt-2">No multi-over multiplier and no fixed economy bonus.</p>
         </div>
-
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-sky-500/30">
-          <h4 class="font-bold text-sky-400 text-sm mb-2 flex items-center gap-1.5">
-            <i data-lucide="shield" class="w-4 h-4"></i> Fielding Points
-          </h4>
-          <ul class="space-y-1.5 text-slate-300">
-            <li class="flex justify-between"><span>Catch Taken:</span> <strong class="text-sky-400 font-mono font-bold">+10.0 pts</strong></li>
-            <li class="flex justify-between"><span>Run-out Executed:</span> <strong class="text-sky-400 font-mono font-bold">+15.0 pts</strong></li>
-            <li class="flex justify-between"><span>Stumping:</span> <strong class="text-sky-400 font-mono font-bold">+12.0 pts</strong></li>
-          </ul>
+          <h4 class="font-bold text-sky-400 text-sm mb-2">Fielding Impact</h4>
+          <p>Catch +10 • Run-out +15 • Stumping +12. A caught-and-bowled also earns catch points. Shared run-out credits follow the recorded participants.</p>
         </div>
-
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-emerald-500/30">
-          <h4 class="font-bold text-emerald-400 text-sm mb-2 flex items-center gap-1.5">
-            <i data-lucide="trophy" class="w-4 h-4"></i> Match Honors
-          </h4>
-          <ul class="space-y-1.5 text-slate-300">
-            <li class="flex justify-between">
-              <span>Player of the Match (CRC Player):</span>
-              <strong class="text-amber-400 font-mono font-bold">+20.0 pts</strong>
-            </li>
-          </ul>
+          <h4 class="font-bold text-emerald-400 text-sm mb-2">Statistical MVP ≠ Official Player of the Match</h4>
+          <p>Statistical MVP = batting + bowling + fielding impact. Official POTM contributes zero points and remains a separate award count. Top Batter, Bowler and Fielder use their discipline’s impact points. Orange and Purple Caps still use runs and wickets.</p>
+          <p class="mt-2">Negative points are retained. Season MVP sums unrounded match totals; only displayed points are rounded to one decimal. Ties use full precision, so equal displayed values may have different ranks.</p>
         </div>
       </div>
     </div>
@@ -803,6 +782,10 @@
         </div>
       </div>
 
+      <div class="mb-4 grid grid-cols-2 gap-3 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div><span class="text-[10px] text-slate-400 block">Statistical MVP v2.0</span><span id="modal-stat-mvp" class="font-mono font-bold text-red-300">0.0</span></div>
+        <div><span class="text-[10px] text-slate-400 block">Official POTM awards</span><span id="modal-stat-potm" class="font-mono font-bold text-amber-300">0</span></div>
+      </div>
       <!-- Match Honors & Awards Summary Grid -->
       <div class="mb-5">
         <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-2">Match Honors & Awards</span>

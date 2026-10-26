@@ -33,6 +33,7 @@ Copy the following when importing new matches:
    python scripts/validate_data.py
    python -m unittest discover -s tests -v
    node tests/test_app.cjs
+   node tests/test_mvp_v2.cjs
    ```
 
 10. Review a preview before merging. The website dynamically updates tournament cards, season stats, leaderboards and player profiles without changes to rendering code.
@@ -40,3 +41,11 @@ Copy the following when importing new matches:
 ## If anything cannot be read
 
 Do not commit a half-invented match just to pass validation. Save your extraction in `_drafts/` (git-ignored), identify the exact screenshot / PDF page needed, and request that specific missing item. Some fields (e.g. over progression) can be unavailable in a legitimate source; only omit those if the current renderer and schema support that omission correctly.
+
+## MVP v2.0 input requirements
+
+Follow [MVP methodology](docs/MVP_METHODOLOGY.md). Import facts, never stored MVP points or inferred winners. Confirm the scheduled innings limit in `format` (`5 overs`, `4 overs`, etc.) or numeric `scheduledOvers`; the validator rejects an unknown limit. For milestones this is independent of the overs actually used in a chase.
+
+Preserve both innings' total runs (including extras), actual legal overs, each batter's recorded balls faced, bowler runs conceded, bowler-credited wickets, dots and maidens. Wides/no-balls affect runs but not legal deliveries; do not rewrite batter balls merely to equal legal balls. Byes/leg-byes must follow the scorer's bowling-concession convention. Do not credit a run-out as a bowling wicket. Identify fielders from the dismissal source; preserve caught-and-bowled, catches, named run-outs and stumpings. Flag unknown fielders rather than guessing. Shared run-outs retain the existing full-credit-per-named-fielder convention; raise uncertain attribution for review.
+
+Keep official POTM as supplied, even when a different player leads statistical MVP. It contributes zero points. Negative calculated points are legitimate; never adjust scorecard facts to eliminate them or match a reference expectation.

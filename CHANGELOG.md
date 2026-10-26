@@ -41,3 +41,11 @@
 - On phone widths, podium cards place performance details on a separate right-aligned row, leaving player names and winner badges unobstructed. On wider screens the cards return to a two-column layout.
 - All first-place badges now simply read **WINNER**, including tied first places; tied gold medals are preserved. Multi-player spotlight cards list the names without an additional “Joint Winners” suffix. The same shared component handles MVP, batting, bowling and fielding podiums for every match.
 - Podium ranks now handle ties between second and third as well as ties for first. Added rendering checks for every match.
+
+## 2026-10-26 — CRC MVP v2.0 (review branch)
+
+- One production match scoring engine; season totals sum unrounded match scores.
+- Match-relative batting/bowling impact, scheduled-over milestones, wickets +20, and official POTM zero points. Negative scores retained.
+- Impact-ranked discipline honours, full precision ties, all tied podium places, one-decimal points, player career/history points and updated formula explanation.
+- Independent rational-arithmetic verification of every player in all seven fixtures. Macroom Jenson is 57.4 including a recorded +15 run-out; supplied 42.4 is his bowling contribution only.
+- No historical data, new frameworks or average-per-appearance feature changes. V1.0 methodology/snapshot archived.

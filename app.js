@@ -408,7 +408,8 @@ function renderCapsShowcase() {
     .filter(p => p.wickets > 0)
     .sort((a, b) => b.wickets - a.wickets || a.economyNum - b.economyNum)[0];
 
-  const mvpLeader = [...playerList].sort((a, b) => b.mvpPoints - a.mvpPoints)[0];
+  const mvpLeaders = getPointWinners(rankByPoints(playerList.filter(p => p.matches > 0), 'mvpPoints'), 'mvpPoints');
+  const mvpLeader = mvpLeaders[0];
 
   if (orangeLeader) {
     document.getElementById('orange-cap-name').textContent = orangeLeader.name;
@@ -423,9 +424,15 @@ function renderCapsShowcase() {
   }
 
   if (mvpLeader) {
-    document.getElementById('mvp-leader-name').textContent = mvpLeader.name;
-    document.getElementById('mvp-leader-points').textContent = `${mvpLeader.mvpPoints} Pts`;
-    document.getElementById('mvp-leader-meta').textContent = `${mvpLeader.runs} Runs • ${mvpLeader.wickets} Wkts • ${mvpLeader.totalFielding} Dismissals`;
+    document.getElementById('mvp-leader-name').textContent = mvpLeaders.map(p => p.name).join(' & ');
+    document.getElementById('mvp-leader-points').textContent = `${formatMvpPoints(mvpLeader.mvpPoints)} Pts`;
+    document.getElementById('mvp-leader-meta').textContent = mvpLeaders.length > 1 ? 'Shared statistical MVP lead • v2.0' : `${mvpLeader.runs} Runs • ${mvpLeader.wickets} Wkts • ${mvpLeader.totalFielding} Dismissals`;
+  }
+
+  if (!mvpLeader) {
+    document.getElementById('mvp-leader-name').textContent = '—';
+    document.getElementById('mvp-leader-points').textContent = '—';
+    document.getElementById('mvp-leader-meta').textContent = 'No appearances in this selection';
   }
 
   // Match Awards Leaders Showcase
@@ -756,11 +763,11 @@ function renderSelectedMatchDetail() {
           ${awards.matchMvpWinner ? `
             <div class="p-3 bg-slate-950/70 border border-red-500/30 rounded-xl">
               <span class="text-[10px] text-red-400 uppercase font-bold block mb-0.5">⭐ CRC Match MVP</span>
-              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 truncate" onclick="openPlayerProfileByName('${awards.matchMvpWinner.name}')">
+              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 leading-snug break-words" ${awards.matchMvpWinners.length === 1 ? `onclick="openPlayerProfileByName('${awards.matchMvpWinner.name}')"` : ''}>
                 ${awards.matchMvpWinner.name}
               </div>
               <div class="font-mono text-red-300 text-xs font-bold mt-0.5">
-                ${awards.matchMvpWinner.totalPts} MVP Points
+                ${formatMvpPoints(awards.matchMvpWinner.totalPts)} MVP Points
               </div>
             </div>
           ` : ''}
@@ -768,11 +775,11 @@ function renderSelectedMatchDetail() {
           ${awards.topBatterWinner ? `
             <div class="p-3 bg-slate-950/70 border border-amber-500/30 rounded-xl">
               <span class="text-[10px] text-amber-400 uppercase font-bold block mb-0.5">🏏 Top CRC Batter</span>
-              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 truncate" onclick="openPlayerProfileByName('${awards.topBatterWinner.name}')">
+              <div class="font-bold text-white text-sm cursor-pointer hover:text-amber-400 leading-snug break-words" ${awards.topBatterWinners.length === 1 ? `onclick="openPlayerProfileByName('${awards.topBatterWinner.name}')"` : ''}>
                 ${awards.topBatterWinner.name}
               </div>
               <div class="font-mono text-amber-400 text-xs mt-0.5">
-                ${awards.topBatterWinner.runs} runs (${awards.topBatterWinner.balls}b, ${awards.topBatterWinner.sixes}x6)
+                ${formatMvpPoints(awards.topBatterWinner.batPts)} batting pts • ${awards.topBatterWinner.runs} runs
               </div>
             </div>
           ` : ''}
@@ -784,7 +791,7 @@ function renderSelectedMatchDetail() {
                 ${awards.topBowlerWinner.name}
               </div>
               <div class="font-mono text-purple-400 text-xs mt-0.5">
-                ${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs} (${awards.topBowlerWinner.overs} ov)
+                ${formatMvpPoints(awards.topBowlerWinner.bowlPts)} bowling pts • ${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs}
               </div>
             </div>
           ` : ''}
@@ -938,16 +945,8 @@ function renderMatchAwardsSubTab(match) {
     `;
   };
 
-  // Competition ranking: tied first-place players BOTH receive gold medals
-  // and the same WINNER label. A tie for second also shares the silver medal.
-  const getPodiumRanking = (list, tieFn) => {
-    return list.slice(0, 3).reduce((ranking, item, index) => {
-      const previous = ranking[index - 1];
-      const place = previous && tieFn(previous.item, item) ? previous.place : index + 1;
-      ranking.push({ item, place });
-      return ranking;
-    }, []);
-  };
+  // Include every player tied within the top three competition ranks.
+  const getPodiumRanking = (list, key) => getCompetitionRanking(list, key, 3);
 
   return `
     <div class="space-y-6">
@@ -958,7 +957,7 @@ function renderMatchAwardsSubTab(match) {
             <span class="text-xl">🏆</span>
             <div>
               <h3 class="font-black text-white text-base">Match Honors & Accolades (CRC)</h3>
-              <p class="text-xs text-slate-400">Top individual match achievements for Cork Royal Challengers</p>
+              <p class="text-xs text-slate-400">Statistical MVP v2.0 • Official POTM is tracked separately (zero points)</p>
             </div>
           </div>
           <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">
@@ -972,7 +971,7 @@ function renderMatchAwardsSubTab(match) {
             <span class="text-[10px] text-red-400 font-bold uppercase tracking-wider block mb-1">⭐ Match MVP</span>
             <div class="font-bold text-white text-sm leading-snug break-words" title="${awards.matchMvpWinner ? awards.matchMvpWinner.name : 'N/A'}">${awards.matchMvpWinner ? awards.matchMvpWinner.name : 'N/A'}</div>
             <div class="text-xs font-mono text-red-300 font-bold mt-0.5">
-              ${awards.matchMvpWinner ? `${awards.matchMvpWinner.totalPts} MVP Points` : '-'}
+              ${awards.matchMvpWinner ? `${formatMvpPoints(awards.matchMvpWinner.totalPts)} MVP Points` : '-'}
             </div>
           </div>
 
@@ -981,7 +980,7 @@ function renderMatchAwardsSubTab(match) {
             <span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider block mb-1">🏏 Top Batter</span>
             <div class="font-bold text-white text-sm leading-snug break-words" title="${awards.topBatterWinner ? awards.topBatterWinner.name : 'N/A'}">${awards.topBatterWinner ? awards.topBatterWinner.name : 'N/A'}</div>
             <div class="text-xs font-mono text-amber-300 font-semibold mt-0.5">
-              ${awards.topBatterWinner ? `${awards.topBatterWinner.runs} runs (${awards.topBatterWinner.balls}b)` : '-'}
+              ${awards.topBatterWinner ? `${formatMvpPoints(awards.topBatterWinner.batPts)} batting pts • ${awards.topBatterWinner.runs} runs` : '-'}
             </div>
           </div>
 
@@ -990,7 +989,7 @@ function renderMatchAwardsSubTab(match) {
             <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block mb-1">🎯 Top Bowler</span>
             <div class="font-bold text-white text-sm leading-snug break-words" title="${awards.topBowlerWinner ? awards.topBowlerWinner.name : 'N/A'}">${awards.topBowlerWinner ? awards.topBowlerWinner.name : 'N/A'}</div>
             <div class="text-xs font-mono text-purple-300 font-semibold mt-0.5">
-              ${awards.topBowlerWinner ? `${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs} (${awards.topBowlerWinner.overs} ov)` : '-'}
+              ${awards.topBowlerWinner ? `${formatMvpPoints(awards.topBowlerWinner.bowlPts)} bowling pts • ${awards.topBowlerWinner.wickets}/${awards.topBowlerWinner.runs}` : '-'}
             </div>
           </div>
 
@@ -999,12 +998,13 @@ function renderMatchAwardsSubTab(match) {
             <span class="text-[10px] text-sky-400 font-bold uppercase tracking-wider block mb-1">🧤 Top Fielder</span>
             <div class="font-bold text-white text-sm leading-snug break-words" title="${awards.topFielderWinner ? awards.topFielderWinner.name : 'None'}">${awards.topFielderWinner ? awards.topFielderWinner.name : 'None'}</div>
             <div class="text-xs font-mono text-sky-300 font-semibold mt-0.5">
-              ${awards.topFielderWinner ? `${awards.topFielderWinner.total} dis (${awards.topFielderWinner.catches}c, ${awards.topFielderWinner.runouts}ro)` : '0 dismissals'}
+              ${awards.topFielderWinner ? `${formatMvpPoints(awards.topFielderWinner.fieldPts)} fielding pts • ${awards.topFielderWinner.total} dismissals` : '0 dismissals'}
             </div>
           </div>
         </div>
       </div>
 
+      <p class="text-xs text-slate-400 leading-relaxed">Match baseline: ${awards.baseline.runs} runs / ${awards.baseline.legalBalls} legal balls = ${awards.baseline.rpb.toFixed(3)} RPB (${awards.baseline.rpo.toFixed(3)} RPO). Scheduled limit: ${awards.baseline.scheduledOvers} overs. Points can be negative; rankings use full precision.</p>
       <!-- 2. Detailed Top 3 Rankings by Category Grid (MVP Category First!) -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -1020,12 +1020,12 @@ function renderMatchAwardsSubTab(match) {
           </div>
           <div class="space-y-2">
             ${awards.mvps.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No player activity recorded</div>' :
-              getPodiumRanking(awards.mvps, (a, b) => a.totalPts === b.totalPts).map(({ item: p, place }) =>
+              getPodiumRanking(awards.mvps, 'totalPts').map(({ item: p, place }) =>
                 renderPodiumItem(
                   place,
                   p.name,
-                  `${p.totalPts} MVP Pts`,
-                  `Bat: +${Math.round(p.batPts)} • Bowl: +${Math.round(p.bowlPts)} • Fld: +${Math.round(p.fieldPts)}${p.potmPts ? ' • POTM: +20' : ''}`,
+                  `${formatMvpPoints(p.totalPts)} MVP Pts`,
+                  `Bat: ${formatMvpPoints(p.batPts, true)} • Bowl: ${formatMvpPoints(p.bowlPts, true)} • Fld: ${formatMvpPoints(p.fieldPts, true)}`,
                   'red'
                 )
               ).join('')
@@ -1039,16 +1039,16 @@ function renderMatchAwardsSubTab(match) {
             <h4 class="font-bold text-white text-sm flex items-center gap-2">
               <span class="text-base">🏏</span> Top CRC Batters (Top 3)
             </h4>
-            <span class="text-[11px] text-slate-400">Ranked by Runs & SR</span>
+            <span class="text-[11px] text-slate-400">Ranked by batting impact</span>
           </div>
           <div class="space-y-2">
             ${awards.batters.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No batting data recorded</div>' :
-              getPodiumRanking(awards.batters, (a, b) => a.runs === b.runs).map(({ item: b, place }) =>
+              getPodiumRanking(awards.batters, 'batPts').map(({ item: b, place }) =>
                 renderPodiumItem(
                   place,
                   b.name,
-                  `${b.runs} Runs (${b.balls}b)`,
-                  `SR ${b.sr} • ${b.sixes}x6, ${b.fours}x4 • ${b.isNotOut ? 'Not Out' : 'Out'}`,
+                  `${formatMvpPoints(b.batPts)} Batting Pts`,
+                  `Runs ${b.runs} (${b.balls}b) • SR ${b.sr} • ${b.sixes}x6, ${b.fours}x4 • ${b.isNotOut ? 'Not Out' : 'Out'}`,
                   'amber'
                 )
               ).join('')
@@ -1062,16 +1062,16 @@ function renderMatchAwardsSubTab(match) {
             <h4 class="font-bold text-white text-sm flex items-center gap-2">
               <span class="text-base">🎯</span> Top CRC Bowlers (Top 3)
             </h4>
-            <span class="text-[11px] text-slate-400">Ranked by Wkts & Economy</span>
+            <span class="text-[11px] text-slate-400">Ranked by bowling impact</span>
           </div>
           <div class="space-y-2">
             ${awards.bowlers.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No bowling data recorded</div>' :
-              getPodiumRanking(awards.bowlers, (a, b) => a.wickets === b.wickets && a.runs === b.runs).map(({ item: bw, place }) =>
+              getPodiumRanking(awards.bowlers, 'bowlPts').map(({ item: bw, place }) =>
                 renderPodiumItem(
                   place,
                   bw.name,
-                  `${bw.wickets}/${bw.runs} (${bw.overs} ov)`,
-                  `Econ ${bw.economy} • ${bw.maidens} Mdns • ${bw.dots} Dots`,
+                  `${formatMvpPoints(bw.bowlPts)} Bowling Pts`,
+                  `Figures ${bw.wickets}/${bw.runs} (${bw.overs} ov) • Econ ${bw.economy} • ${bw.maidens} Mdns • ${bw.dots} Dots`,
                   'purple'
                 )
               ).join('')
@@ -1085,15 +1085,15 @@ function renderMatchAwardsSubTab(match) {
             <h4 class="font-bold text-white text-sm flex items-center gap-2">
               <span class="text-base">🧤</span> Top CRC Fielders (Top 3)
             </h4>
-            <span class="text-[11px] text-slate-400">Catches, Run-outs & Stumpings</span>
+            <span class="text-[11px] text-slate-400">Ranked by fielding impact</span>
           </div>
           <div class="space-y-2">
             ${awards.fielders.length === 0 ? '<div class="text-xs text-slate-500 py-3 text-center">No fielding dismissals in this innings</div>' :
-              getPodiumRanking(awards.fielders, (a, b) => a.total === b.total && a.catches === b.catches && a.runouts === b.runouts).map(({ item: f, place }) =>
+              getPodiumRanking(awards.fielders, 'fieldPts').map(({ item: f, place }) =>
                 renderPodiumItem(
                   place,
                   f.name,
-                  `${f.total} Dismissal${f.total > 1 ? 's' : ''}`,
+                  `${formatMvpPoints(f.fieldPts)} Fielding Pts`,
                   `${f.catches} Catches • ${f.runouts} Run-outs${f.stumpings ? ' • ' + f.stumpings + ' St' : ''}`,
                   'sky'
                 )
@@ -1461,7 +1461,8 @@ function renderLeaderboardTab() {
     `).join('');
   }
 
-  const mvpList = [...playerList];
+  const mvpList = rankByPoints(playerList.filter(p => p.matches > 0), 'mvpPoints');
+  const mvpRanks = new Map(getCompetitionRanking(mvpList, 'mvpPoints').map(({ item, place }) => [item.name, place]));
   mvpList.sort((a, b) => {
     let valA = a[mvpSort.col];
     let valB = b[mvpSort.col];
@@ -1472,14 +1473,14 @@ function renderLeaderboardTab() {
   const mvpTbody = document.getElementById('leaderboard-mvp-body');
   if (mvpTbody) {
     mvpTbody.innerHTML = mvpList.map((p, idx) => `
-      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${idx === 0 ? 'border-amber-400 bg-amber-500/10' : 'border-transparent'}">
-        <td class="py-3 px-4 font-mono font-bold ${idx === 0 ? 'text-amber-400' : 'text-slate-400'}">
-          ${idx + 1}
+      <tr class="hover:bg-slate-800/40 transition-colors border-l-4 ${mvpRanks.get(p.name) === 1 ? 'border-amber-400 bg-amber-500/10' : 'border-transparent'}">
+        <td class="py-3 px-4 font-mono font-bold ${mvpRanks.get(p.name) === 1 ? 'text-amber-400' : 'text-slate-400'}">
+          ${mvpRanks.get(p.name)}
         </td>
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
         </td>
-        <td class="py-3 px-3 text-right font-mono font-black text-amber-400 text-sm">${p.mvpPoints}</td>
+        <td class="py-3 px-3 text-right font-mono font-black text-amber-400 text-sm">${formatMvpPoints(p.mvpPoints)}</td>
         <td class="py-3 px-3 text-right text-amber-300 font-mono font-semibold">${p.potmCount}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.runs}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.wickets}</td>
@@ -1518,7 +1519,7 @@ function renderLeaderboardTab() {
           ${p.name}
         </td>
         <td class="py-3 px-3 text-right font-mono font-bold text-amber-400 text-sm">
-          ${p.mvpPoints}
+          ${formatMvpPoints(p.mvpPoints)}
         </td>
         <td class="py-3 px-3 text-right font-mono font-black text-white text-sm">
           ${p.awards.total}
@@ -1542,7 +1543,8 @@ function renderLeaderboardTab() {
   // Update header cap summary badges dynamically based on current standings
   const orangeLeader = [...battingList].sort((a, b) => b.runs - a.runs)[0];
   const purpleLeader = [...bowlingList].sort((a, b) => b.wickets - a.wickets || a.economyNum - b.economyNum)[0];
-  const mvpLeader = [...mvpList].sort((a, b) => b.mvpPoints - a.mvpPoints)[0];
+  const mvpLeaders = getPointWinners(rankByPoints(mvpList, 'mvpPoints'), 'mvpPoints');
+  const mvpLeader = mvpLeaders[0];
   const awardsLeader = [...awardsList].sort((a, b) => b.awards.total - a.awards.total)[0];
 
   const orangePill = document.getElementById('leaderboard-orange-pill');
@@ -1555,8 +1557,9 @@ function renderLeaderboardTab() {
   }
   const mvpPill = document.getElementById('leaderboard-mvp-pill');
   if (mvpPill && mvpLeader) {
-    mvpPill.textContent = `MVP Leader: ${mvpLeader.name} (${mvpLeader.mvpPoints} Pts)`;
+    mvpPill.textContent = `MVP Leader: ${mvpLeaders.map(p => p.name).join(' & ')} (${formatMvpPoints(mvpLeader.mvpPoints)} Pts)`;
   }
+  if (mvpPill && !mvpLeader) mvpPill.textContent = 'No MVP appearances';
   const awardsPill = document.getElementById('leaderboard-awards-pill');
   if (awardsPill && awardsLeader) {
     awardsPill.textContent = `Most Awards: ${awardsLeader.name} (${awardsLeader.awards.total} Awards)`;
@@ -1599,7 +1602,7 @@ function renderPlayersTab() {
           </div>
           <div>
             <span class="text-[10px] text-slate-400 block">MVP Pts</span>
-            <span class="font-bold text-slate-200 font-mono">${p.mvpPoints}</span>
+            <span class="font-bold text-slate-200 font-mono">${formatMvpPoints(p.mvpPoints)}</span>
           </div>
         </div>
 
@@ -1639,6 +1642,9 @@ function openPlayerProfileByName(name) {
   document.getElementById('modal-stat-best').textContent = `${p.bestBowling.wkts}/${p.bestBowling.runs === 999 ? 0 : p.bestBowling.runs}`;
   document.getElementById('modal-stat-catches').textContent = p.totalFielding;
 
+  document.getElementById('modal-stat-mvp').textContent = formatMvpPoints(p.mvpPoints);
+  document.getElementById('modal-stat-potm').textContent = p.potmCount;
+
   // Populate Match Honors & Awards Summary Grid
   const elBat = document.getElementById('modal-award-bat');
   if (elBat) elBat.textContent = p.awards?.topBatter || 0;
@@ -1664,6 +1670,7 @@ function openPlayerProfileByName(name) {
       if (!isParticipant) return '';
 
       const awards = getMatchCrcAwards(match);
+      const matchImpact = awards.mvps.find(score => score.name === p.name);
       const isPotm = getCrcPotm(match) === p.name;
       const isMatchMvp = (awards.matchMvpWinners || []).some(w => w.name === p.name) || awards.matchMvpWinner?.name === p.name;
       const isTopBatter = (awards.topBatterWinners || []).some(w => w.name === p.name) || awards.topBatterWinner?.name === p.name;
@@ -1678,13 +1685,14 @@ function openPlayerProfileByName(name) {
               <div class="text-[11px] text-slate-400">${match.date} • Result: ${match.result}</div>
             </div>
             <div class="text-right space-y-0.5">
+              ${matchImpact ? `<div class="font-mono font-bold text-red-300">Statistical MVP: ${formatMvpPoints(matchImpact.totalPts)} pts</div>` : ''}
               ${batRecord ? `<div class="font-mono font-bold text-amber-400">Bat: ${batRecord.runs} (${batRecord.balls}b, ${batRecord.sixes}x6)</div>` : (!bowlRecord ? `<div class="font-mono text-slate-400 text-[11px]">Did Not Bat</div>` : '')}
               ${bowlRecord ? `<div class="font-mono text-sky-400">Bowl: ${bowlRecord.overs} ov, ${bowlRecord.wickets}-${bowlRecord.runs}</div>` : ''}
             </div>
           </div>
           ${(isPotm || isMatchMvp || isTopBatter || isTopBowler || isTopFielder) ? `
             <div class="flex flex-wrap gap-1 pt-1.5 border-t border-slate-800/80">
-              ${isPotm ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/40">🏆 POTM</span>` : ''}
+              ${isPotm ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-black border border-amber-500/40">🏆 Official POTM</span>` : ''}
               ${isMatchMvp ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-300 font-black border border-red-500/30">⭐ Match MVP</span>` : ''}
               ${isTopBatter ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">🏏 Top Batter</span>` : ''}
               ${isTopBowler ? `<span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30">🎯 Top Bowler</span>` : ''}

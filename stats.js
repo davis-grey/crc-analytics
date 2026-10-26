@@ -1,22 +1,74 @@
 // CRC cricket statistics, identity helpers and pure calculations.
 // Loaded before app.js: declarations reference app state only when called.
 
-// Club MVP Formula Constants
-const MVP_WEIGHTS = {
-  RUN: 1.0,
-  FOUR: 1.0,
-  SIX: 2.0,
-  MILESTONE_25: 10.0,
-  WICKET: 25.0,
-  MAIDEN: 12.0,
-  DOT_BALL: 1.0,
-  CATCH: 10.0,
-  RUNOUT: 15.0,
-  STUMPING: 12.0,
-  ECONOMY_BONUS: 10.0, // at most 6.0 runs/over (min 1 over)
-  POTM_BONUS: 20.0     // only for CRC players
-};
+// CRC MVP v2.0: the only production scoring implementation.
+const MVP_WEIGHTS = Object.freeze({
+  RUN: 1, FOUR: 1, SIX: 2, MILESTONE: 5,
+  WICKET: 20, MAIDEN: 12, DOT_BALL: 1,
+  RUNS_SAVED: 1.5, CATCH: 10, RUNOUT: 15, STUMPING: 12
+});
 
+function getMatchMvpContext(match) {
+  // Scheduled limit, never the overs actually used by a shortened chase.
+  const limit = match.scheduledOvers ?? Number((match.format || '').match(/(\d+(?:\.\d+)?)\s*overs?\b/i)?.[1]);
+  if (!Number.isFinite(limit) || limit <= 0 || !Number.isInteger(limit * 6)) {
+    throw new Error(`Missing or invalid scheduled overs for ${match.id}`);
+  }
+  const runs = match.innings.reduce((sum, inn) => sum + inn.runs, 0);
+  const legalBalls = match.innings.reduce((sum, inn) => sum + oversToBalls(inn.overs), 0);
+  if (!legalBalls && runs) throw new Error(`Cannot calculate match baseline without legal balls: ${match.id}`);
+  const rpb = legalBalls ? runs / legalBalls : 0;
+  return { scheduledOvers: limit, runs, legalBalls, rpb, rpo: rpb * 6 };
+}
+
+function calculateBattingImpact(b, baseline) {
+  const milestonePts = MVP_WEIGHTS.MILESTONE * (
+    Number(b.runs >= baseline.scheduledOvers * 3) + Number(b.runs >= baseline.scheduledOvers * 5));
+  const strikeRateImpact = b.runs - b.balls * baseline.rpb;
+  return { milestonePts, strikeRateImpact,
+    batPts: b.runs * MVP_WEIGHTS.RUN + b.fours * MVP_WEIGHTS.FOUR + b.sixes * MVP_WEIGHTS.SIX
+      + milestonePts + strikeRateImpact };
+}
+
+function calculateBowlingImpact(b, baseline) {
+  const runsSavedImpact = MVP_WEIGHTS.RUNS_SAVED * (oversToBalls(b.overs) * baseline.rpb - b.runs);
+  return { runsSavedImpact, bowlPts: b.wickets * MVP_WEIGHTS.WICKET
+    + b.dots * MVP_WEIGHTS.DOT_BALL + b.maidens * MVP_WEIGHTS.MAIDEN + runsSavedImpact };
+}
+
+function calculateFieldingImpact(f) {
+  return f.catches * MVP_WEIGHTS.CATCH + f.runouts * MVP_WEIGHTS.RUNOUT + f.stumpings * MVP_WEIGHTS.STUMPING;
+}
+
+// Only floating-point representation noise is treated as equal. Display rounding
+// never determines rank: 10.04 and 10.03 are different even if both show 10.0.
+function sameMvpPoints(a, b) {
+  return Math.abs(a - b) <= Number.EPSILON * 16 * Math.max(1, Math.abs(a), Math.abs(b));
+}
+
+function rankByPoints(list, key) {
+  return [...list].sort((a, b) => sameMvpPoints(a[key], b[key])
+    ? a.name.localeCompare(b.name) : b[key] - a[key]);
+}
+
+function getCompetitionRanking(list, key, maxRank = Infinity) {
+  let place = 0;
+  return list.map((item, index) => {
+    if (!index || !sameMvpPoints(item[key], list[index - 1][key])) place = index + 1;
+    return { item, place };
+  }).filter(row => row.place <= maxRank);
+}
+
+function getPointWinners(list, key) {
+  return list.length ? list.filter(p => sameMvpPoints(p[key], list[0][key])) : [];
+}
+
+function formatMvpPoints(points, signed = false) {
+  const value = points.toFixed(1);
+  // Avoid confusing '-0.0' and '+-x' displays without touching the score.
+  const display = value === '-0.0' ? '0.0' : value;
+  return signed && points >= 0 ? `+${display}` : display;
+}
 
 function normalizePlayerName(name) {
   if (!name) return '';
@@ -57,7 +109,9 @@ function getMatchCrcAwards(match) {
   const crcInn = match.innings.find(i => isCrcTeam(i));
   const oppInn = match.innings.find(i => !isCrcTeam(i));
 
-  // 1. Top CRC Batters (ranked by runs, not-out, sixes, fours, SR)
+  const baseline = getMatchMvpContext(match);
+
+  // Eligible discipline lists contain players with recorded activity in that discipline.
   const batters = (crcInn?.batting || []).map(b => {
     const runs = b.runs || 0;
     const balls = b.balls || 0;
@@ -74,11 +128,12 @@ function getMatchCrcAwards(match) {
       sr,
       srNum: parseFloat(sr),
       dismissal: b.dismissal || 'not out',
-      isNotOut
+      isNotOut,
+      ...calculateBattingImpact({ runs, balls, fours, sixes }, baseline)
     };
-  }).sort((a, b) => b.runs - a.runs || (b.isNotOut ? 1 : 0) - (a.isNotOut ? 1 : 0) || b.sixes - a.sixes || b.fours - a.fours || b.srNum - a.srNum);
+  });
 
-  // 2. Top CRC Bowlers (ranked by wickets, fewer runs, lower economy, maidens, dots)
+  // Bowler-credited wickets come from the bowling scorecard, not innings wickets.
   const bowlers = (oppInn?.bowling || []).map(bw => {
     const balls = oversToBalls(bw.overs);
     const econ = balls > 0 ? (bw.runs * 6 / balls).toFixed(2) : '-';
@@ -90,16 +145,17 @@ function getMatchCrcAwards(match) {
       wickets: bw.wickets || 0,
       dots: bw.dots || 0,
       economy: econ,
-      economyNum: balls > 0 ? Number(econ) : Infinity
+      economyNum: balls > 0 ? Number(econ) : Infinity,
+      ...calculateBowlingImpact({ ...bw, wickets: bw.wickets || 0, dots: bw.dots || 0, maidens: bw.maidens || 0 }, baseline)
     };
-  }).sort((a, b) => b.wickets - a.wickets || a.runs - b.runs || b.dots - a.dots || a.economyNum - b.economyNum || b.maidens - a.maidens);
+  });
 
   // 3. Top CRC Fielders (catches, run-outs, stumpings in opponent innings)
   const fieldingMap = {};
   (oppInn?.batting || []).forEach(b => {
     const d = b.dismissal || '';
     if (d.includes('c ') && !d.includes('c & b')) {
-      const fm = d.match(/c ([^b]+) b /);
+      const fm = d.match(/^c (.+?) b /i);
       if (fm && fm[1]) {
         const fn = normalizePlayerName(fm[1].trim());
         if (!fieldingMap[fn]) fieldingMap[fn] = { name: fn, catches: 0, runouts: 0, stumpings: 0, total: 0 };
@@ -125,7 +181,7 @@ function getMatchCrcAwards(match) {
       }
     }
     if (d.includes('st ')) {
-      const sm = d.match(/st ([^b]+) b /);
+      const sm = d.match(/^st (.+?) b /i);
       if (sm && sm[1]) {
         const sn = normalizePlayerName(sm[1].trim());
         if (!fieldingMap[sn]) fieldingMap[sn] = { name: sn, catches: 0, runouts: 0, stumpings: 0, total: 0 };
@@ -134,78 +190,30 @@ function getMatchCrcAwards(match) {
       }
     }
   });
-  const fielders = Object.values(fieldingMap).sort((a, b) => b.total - a.total || b.catches - a.catches || b.runouts - a.runouts);
+  const fielders = Object.values(fieldingMap).map(f => ({ ...f, fieldPts: calculateFieldingImpact(f) }));
 
-  // 4. Match MVP / Impact Ranking (Calculated specifically for this match)
   const playerMap = {};
-  batters.forEach(b => {
-    if (!playerMap[b.name]) playerMap[b.name] = { name: b.name, batPts: 0, bowlPts: 0, fieldPts: 0, potmPts: 0, totalPts: 0, runs: 0, balls: 0, wkts: 0, overs: '0', catches: 0, runouts: 0 };
-    let pts = (b.runs * MVP_WEIGHTS.RUN) + (b.fours * MVP_WEIGHTS.FOUR) + (b.sixes * MVP_WEIGHTS.SIX);
-    if (b.runs >= 25) pts += MVP_WEIGHTS.MILESTONE_25;
-    playerMap[b.name].batPts = pts;
-    playerMap[b.name].runs = b.runs;
-    playerMap[b.name].balls = b.balls;
-  });
-  bowlers.forEach(bw => {
-    if (!playerMap[bw.name]) playerMap[bw.name] = { name: bw.name, batPts: 0, bowlPts: 0, fieldPts: 0, potmPts: 0, totalPts: 0, runs: 0, balls: 0, wkts: 0, overs: '0', catches: 0, runouts: 0 };
-    let pts = (bw.wickets * MVP_WEIGHTS.WICKET) + (bw.maidens * MVP_WEIGHTS.MAIDEN) + (bw.dots * MVP_WEIGHTS.DOT_BALL);
-    const balls = oversToBalls(bw.overs);
-    if (balls >= 6 && (bw.runs * 6 / balls) <= 6.0) pts += MVP_WEIGHTS.ECONOMY_BONUS;
-    playerMap[bw.name].bowlPts = pts;
-    playerMap[bw.name].wkts = bw.wickets;
-    playerMap[bw.name].overs = bw.overs;
-  });
-  fielders.forEach(f => {
-    if (!playerMap[f.name]) playerMap[f.name] = { name: f.name, batPts: 0, bowlPts: 0, fieldPts: 0, potmPts: 0, totalPts: 0, runs: 0, balls: 0, wkts: 0, overs: '0', catches: 0, runouts: 0 };
-    let pts = (f.catches * MVP_WEIGHTS.CATCH) + (f.runouts * MVP_WEIGHTS.RUNOUT) + (f.stumpings * MVP_WEIGHTS.STUMPING);
-    playerMap[f.name].fieldPts = pts;
-    playerMap[f.name].catches = f.catches;
-    playerMap[f.name].runouts = f.runouts;
-    playerMap[f.name].stumpings = f.stumpings || 0;
-  });
-  const crcPotm = getCrcPotm(match);
-  if (crcPotm && playerMap[crcPotm]) {
-    playerMap[crcPotm].potmPts = MVP_WEIGHTS.POTM_BONUS;
-  }
-  Object.values(playerMap).forEach(p => {
-    p.totalPts = Math.round(p.batPts + p.bowlPts + p.fieldPts + p.potmPts);
-  });
-  const mvps = Object.values(playerMap).sort((a, b) => b.totalPts - a.totalPts || b.bowlPts - a.bowlPts || b.batPts - a.batPts);
-
-  // Shared first-place ranking logic
-  // Bowlers: share top wickets and least runs conceded
-  let topBowlerWinners = [];
-  if (bowlers.length > 0 && bowlers[0].wickets > 0) {
-    const topW = bowlers[0].wickets;
-    const topR = bowlers[0].runs;
-    topBowlerWinners = bowlers.filter(b => b.wickets === topW && b.runs === topR);
-  } else if (bowlers.length > 0) {
-    const topR = bowlers[0].runs;
-    topBowlerWinners = bowlers.filter(b => b.wickets === 0 && b.runs === topR);
-  }
-
-  // Fielders: share top dismissals (> 0)
-  let topFielderWinners = [];
-  if (fielders.length > 0 && fielders[0].total > 0) {
-    const topTot = fielders[0].total;
-    topFielderWinners = fielders.filter(f => f.total === topTot);
-  }
-
-  // Batters: share top runs (> 0)
-  let topBatterWinners = [];
-  if (batters.length > 0 && batters[0].runs > 0) {
-    const topR = batters[0].runs;
-    topBatterWinners = batters.filter(b => b.runs === topR);
-  } else if (batters.length > 0) {
-    topBatterWinners = [batters[0]];
-  }
-
-  // MVPs: share top points (> 0)
-  let matchMvpWinners = [];
-  if (mvps.length > 0 && mvps[0].totalPts > 0) {
-    const topPts = mvps[0].totalPts;
-    matchMvpWinners = mvps.filter(m => m.totalPts === topPts);
-  }
+  const player = name => playerMap[name] ||= {
+    name, batPts: 0, bowlPts: 0, fieldPts: 0, totalPts: 0,
+    runs: 0, balls: 0, wkts: 0, overs: '0', catches: 0, runouts: 0, stumpings: 0
+  };
+  // Include recorded participants with no scored activity: their contribution is
+  // exactly zero, which can outrank a negative contribution. No unused reserves.
+  (match.crcPlayingXI || []).forEach(name => player(normalizePlayerName(name)));
+  batters.forEach(b => Object.assign(player(b.name), { batPts: b.batPts, runs: b.runs, balls: b.balls }));
+  bowlers.forEach(b => Object.assign(player(b.name), { bowlPts: b.bowlPts, wkts: b.wickets, overs: b.overs }));
+  fielders.forEach(f => Object.assign(player(f.name), {
+    fieldPts: f.fieldPts, catches: f.catches, runouts: f.runouts, stumpings: f.stumpings
+  }));
+  Object.values(playerMap).forEach(p => { p.totalPts = p.batPts + p.bowlPts + p.fieldPts; });
+  const mvps = rankByPoints(Object.values(playerMap), 'totalPts');
+  const rankedBatters = rankByPoints(batters, 'batPts');
+  const rankedBowlers = rankByPoints(bowlers, 'bowlPts');
+  const rankedFielders = rankByPoints(fielders, 'fieldPts');
+  const topBatterWinners = getPointWinners(rankedBatters, 'batPts');
+  const topBowlerWinners = getPointWinners(rankedBowlers, 'bowlPts');
+  const topFielderWinners = getPointWinners(rankedFielders, 'fieldPts');
+  const matchMvpWinners = getPointWinners(mvps, 'totalPts');
 
   const formatWinner = (winners) => {
     if (!winners || winners.length === 0) return null;
@@ -220,9 +228,10 @@ function getMatchCrcAwards(match) {
   const matchMvpWinner = formatWinner(matchMvpWinners);
 
   return {
-    batters,
-    bowlers,
-    fielders,
+    baseline,
+    batters: rankedBatters,
+    bowlers: rankedBowlers,
+    fielders: rankedFielders,
     mvps,
     topBatterWinner,
     topBowlerWinner,
@@ -332,11 +341,14 @@ function calculateSeasonStats() {
     const crcPotm = getCrcPotm(match);
     if (crcPotm && stats[crcPotm]) {
       stats[crcPotm].potmCount += 1;
-      stats[crcPotm].mvpPoints += MVP_WEIGHTS.POTM_BONUS;
     }
 
     // Tally CRC Match Awards for this match (crediting all tied/joint winners)
     const matchAwards = getMatchCrcAwards(match);
+    matchAwards.mvps.forEach(score => {
+      if (!stats[score.name]) stats[score.name] = createEmptyPlayerStat(score.name);
+      stats[score.name].mvpPoints += score.totalPts;
+    });
     (matchAwards.topBatterWinners || (matchAwards.topBatterWinner ? [matchAwards.topBatterWinner] : [])).forEach(w => {
       const n = w.name;
       if (!stats[n]) stats[n] = createEmptyPlayerStat(n);
@@ -409,8 +421,6 @@ function calculateSeasonStats() {
 
           p.recentScores.push({ score: b.runs, isNotOut, matchId: match.id, opp: getOppositionName(match) });
 
-          p.mvpPoints += (b.runs * MVP_WEIGHTS.RUN) + (b.fours * MVP_WEIGHTS.FOUR) + (b.sixes * MVP_WEIGHTS.SIX);
-          if (b.runs >= 25) p.mvpPoints += MVP_WEIGHTS.MILESTONE_25;
         });
       } else {
         inn.bowling.forEach(bw => {
@@ -430,13 +440,7 @@ function calculateSeasonStats() {
             p.bestBowling = { wkts: bw.wickets, runs: bw.runs };
           }
 
-          p.mvpPoints += (bw.wickets * MVP_WEIGHTS.WICKET) +
-                         (bw.maidens * MVP_WEIGHTS.MAIDEN) +
-                         (bw.dots * MVP_WEIGHTS.DOT_BALL);
 
-          if (oversToBalls(bw.overs) >= 6 && (bw.runs * 6 / oversToBalls(bw.overs)) <= 6.0) {
-            p.mvpPoints += MVP_WEIGHTS.ECONOMY_BONUS;
-          }
         });
 
         // Fielding is credited once per match below, from the same scorer used
@@ -453,9 +457,6 @@ function calculateSeasonStats() {
       p.catches += f.catches;
       p.runouts += f.runouts;
       p.stumpings += f.stumpings;
-      p.mvpPoints += f.catches * MVP_WEIGHTS.CATCH
-        + f.runouts * MVP_WEIGHTS.RUNOUT
-        + f.stumpings * MVP_WEIGHTS.STUMPING;
     });
   });
 
@@ -470,7 +471,6 @@ function calculateSeasonStats() {
     p.economyNum = p.ballsBowled > 0 ? (p.runsConceded / (p.ballsBowled / 6)) : 999;
     p.economy = p.ballsBowled > 0 ? (p.runsConceded / (p.ballsBowled / 6)).toFixed(2) : '-';
     p.totalFielding = p.catches + p.runouts + p.stumpings;
-    p.mvpPoints = Math.round(p.mvpPoints);
   });
 
   return stats;
