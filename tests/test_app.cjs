@@ -31,13 +31,12 @@ const historicalMatchIds = baseline.awards.map(a => a.id);
 context.__historicalIds = historicalMatchIds;
 vm.runInContext('matchesData=__data.filter(m=>__historicalIds.includes(m.id));', context);
 assert.equal(evalJson('matchesData.length'), 7);
-const result = evalJson(`({
-  stats: Object.fromEntries(Object.entries(calculateSeasonStats()).map(([name,p])=>[name,{
-    matches:p.matches,runs:p.runs,wickets:p.wickets,mvpPoints:p.mvpPoints,potmCount:p.potmCount
-  }])),
-  awards: matchesData.map(m=>({id:m.id,mvps:getMatchCrcAwards(m).mvps.map(p=>({name:p.name,totalPts:p.totalPts})),topBatter:getMatchCrcAwards(m).topBatterWinners.map(p=>p.name)}))
-})`);
-assert.deepEqual(result, baseline, 'Historical stats or MVP rankings unexpectedly changed');
+const result = evalJson(`Object.fromEntries(Object.entries(calculateSeasonStats()).map(([name,p])=>[name,{
+    matches:p.matches,runs:p.runs,wickets:p.wickets,potmCount:p.potmCount
+  }]))`);
+const historicalRawStats = Object.fromEntries(Object.entries(baseline.stats).map(([name, {mvpPoints, ...raw}]) => [name, raw]));
+assert.deepEqual(result, historicalRawStats, 'Historical scorecard stats or official POTM counts changed');
+// v1 MVP values are archived, not an assertion for the intentionally changed v2 formula.
 vm.runInContext('matchesData=__data;', context);
 // Corrected tournament appearances: 8 participants in each CSK match.
 const cskCounts = evalJson(`(() => { const mm=matchesData.filter(m => m.tournamentId==='csk-indoor-2026-s3');
@@ -116,20 +115,21 @@ for (const awardHtml of renderedAwardHtml) {
 }
 const quarterFinal = renderedAwardHtml[data.findIndex(m => m.id === 'csk-s3-m3-corkindians')];
 assert.match(quarterFinal, /Davison<\/span>\s*<span[^>]*>WINNER<\/span>/);
-assert.match(quarterFinal, /Savio<\/span>\s*<span[^>]*>WINNER<\/span>/);
-assert.ok((quarterFinal.match(/>WINNER<\/span>/g) || []).length >= 4, 'Quarter-final should show MVP, batter and both bowling winners');
+assert.doesNotMatch(quarterFinal, /Savio<\/span>\s*<span[^>]*>WINNER<\/span>/);
+assert.ok((quarterFinal.match(/>WINNER<\/span>/g) || []).length >= 4, 'Quarter-final should show discipline and statistical winners');
 const quarterAwards = evalJson('getMatchCrcAwards(matchesData.find(m=>m.id==="csk-s3-m3-corkindians"))');
 assert.ok(quarterAwards.topBowlerWinners.some(p=>p.name==='Davison'));
-assert.ok(quarterAwards.topBowlerWinners.some(p=>p.name==='Savio'));
-assert.equal(quarterAwards.topBowlerWinner.name, 'Davison & Savio');
+assert.equal(quarterAwards.topBowlerWinners.length, 1, 'Extra dot makes Davison the sole v2 bowling leader');
+assert.equal(quarterAwards.topBowlerWinner.name, 'Davison');
+assert.equal(quarterAwards.matchMvpWinner.name, 'Srikanth');
 assert.equal(quarterAwards.topFielderWinner.name, 'Avinash & Joy D');
-assert.match(quarterFinal, /Davison &amp; Savio|Davison & Savio/);
+assert.match(quarterFinal, /30\.8 MVP Pts/);
 assert.match(quarterFinal, /Avinash &amp; Joy D|Avinash & Joy D/);
 // Spotlight cards must show the full names of tied winners without ellipses.
 assert.doesNotMatch(quarterFinal, /class="font-bold text-white text-sm truncate"/);
 // The actual UI markup for a tied award must have two separately labelled winners.
 const winnerRows = [...quarterFinal.matchAll(/<div class="podium-entry[\s\S]*?<\/div>\s*<\/div>/g)].map(x=>x[0]);
 assert.ok(winnerRows.some(row=>row.includes('Davison')&&row.includes('WINNER')));
-assert.ok(winnerRows.some(row=>row.includes('Savio')&&row.includes('WINNER')));
+assert.ok(winnerRows.some(row=>row.includes('Joy D')&&row.includes('WINNER')));
 
-console.log('PASS: historical stats, MVP, cricket overs, identities, new tournaments, filters, HTML escaping, responsive winner tags');
+console.log('PASS: historical raw stats, MVP v2, cricket overs, identities, new tournaments, filters, HTML escaping, responsive winner tags');

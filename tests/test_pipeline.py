@@ -87,6 +87,16 @@ class PipelineTests(unittest.TestCase):
         data['matches'][0]['tournamentId'] = 'not-yet-registered'
         self.assertTrue(any('Unknown tournamentId' in x for x in self.errors(data)))
 
+    def test_mvp_scheduled_limit_required(self):
+        data = copy.deepcopy(self.dataset)
+        data['matches'][0]['format'] = 'Club Cricket'
+        self.assertTrue(any('scheduled overs' in e for e in self.errors(data)))
+        data['matches'][0]['scheduledOvers'] = 5
+        self.assertFalse(any('scheduled overs' in e for e in self.errors(data)))
+        for invalid in [0, -1, True, '5', float('inf'), 4.1]:
+            data['matches'][0]['scheduledOvers'] = invalid
+            self.assertTrue(any('scheduled overs' in e for e in self.errors(data)), invalid)
+
     def test_generated_files_are_current(self):
         for path, body in generated_artifacts(self.dataset).items():
             self.assertEqual(path.read_text(encoding='utf-8'), body, str(path.relative_to(ROOT)))
