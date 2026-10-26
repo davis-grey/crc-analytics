@@ -1149,13 +1149,13 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
           <thead>
             <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <th class="py-2.5 px-4 font-semibold">Batter</th>
-              <th class="py-2.5 px-3 text-right font-semibold text-amber-400" title="Batting Impact: full CRC MVP v2.0 batting component">Impact</th>
               <th class="py-2.5 px-2 font-semibold">Dismissal</th>
               <th class="py-2.5 px-3 text-right font-semibold text-white">R</th>
               <th class="py-2.5 px-3 text-right font-semibold">B</th>
               <th class="py-2.5 px-3 text-right font-semibold">4s</th>
               <th class="py-2.5 px-3 text-right font-semibold">6s</th>
               <th class="py-2.5 px-4 text-right font-semibold">SR</th>
+              ${isCRC ? `<th class="py-2.5 px-3 text-right font-semibold text-amber-400" title="Batting Impact: full CRC MVP v2.0 batting component">Impact</th>` : ''}
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60">
@@ -1167,20 +1167,20 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
                     <span class="cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${cleanPlayer}')">${cleanPlayer}</span>
                     ${b.dismissal.toLowerCase().includes('not out') ? '<span class="text-emerald-400 text-[10px]">*</span>' : ''}
                   </td>
-                  <td class="py-2.5 px-3 text-right text-amber-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBattingImpact(b, baseline).batPts)}</td>
                   <td class="py-2.5 px-2 text-slate-400 truncate max-w-xs">${b.dismissal}</td>
                   <td class="py-2.5 px-3 text-right font-bold text-white font-mono">${b.runs}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${b.balls}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${b.fours}</td>
                   <td class="py-2.5 px-3 text-right text-amber-400 font-mono font-semibold">${b.sixes}</td>
                   <td class="py-2.5 px-4 text-right text-slate-400 font-mono">${b.sr}</td>
+                  ${isCRC ? `<td class="py-2.5 px-3 text-right text-amber-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBattingImpact(b, baseline).batPts)}</td>` : ''}
                 </tr>
               `;
             }).join('')}
             <tr class="bg-slate-950/30 text-slate-300 font-medium">
-              <td class="py-2 px-4" colspan="3">Extras (${formatExtras(inn.extras)})</td>
+              <td class="py-2 px-4" colspan="2">Extras (${formatExtras(inn.extras)})</td>
               <td class="py-2 px-3 text-right font-bold font-mono text-white">${inn.extras?.total || 0}</td>
-              <td colspan="4" class="py-2 px-4 text-right text-slate-400 text-[11px]">(Overs: ${inn.overs}, RR: ${inn.runRate})</td>
+              <td colspan="${isCRC ? 5 : 4}" class="py-2 px-4 text-right text-slate-400 text-[11px]">(Overs: ${inn.overs}, RR: ${inn.runRate})</td>
             </tr>
           </tbody>
         </table>
@@ -1191,7 +1191,6 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
           <thead>
             <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <th class="py-2.5 px-4 font-semibold">Bowler</th>
-              <th class="py-2.5 px-3 text-right font-semibold text-purple-400" title="Bowling Impact: full CRC MVP v2.0 bowling component">Impact</th>
               <th class="py-2.5 px-3 text-right font-semibold">O</th>
               <th class="py-2.5 px-3 text-right font-semibold">M</th>
               <th class="py-2.5 px-3 text-right font-semibold text-white">R</th>
@@ -1199,6 +1198,7 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
               <th class="py-2.5 px-3 text-right font-semibold">Econ</th>
               <th class="py-2.5 px-3 text-right font-semibold">Dots</th>
               <th class="py-2.5 px-4 text-right font-semibold">Wd/Nb</th>
+              ${!isCRC ? `<th class="py-2.5 px-3 text-right font-semibold text-purple-400" title="Bowling Impact: full CRC MVP v2.0 bowling component">Impact</th>` : ''}
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-800/60">
@@ -1209,7 +1209,6 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
                   <td class="py-2.5 px-4 font-medium text-white whitespace-nowrap cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${cleanBowler}')">
                     ${cleanBowler}
                   </td>
-                  <td class="py-2.5 px-3 text-right text-purple-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBowlingImpact({...bw, dots: bw.dots || 0, maidens: bw.maidens || 0}, baseline).bowlPts)}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.overs}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.maidens || 0}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.runs}</td>
@@ -1217,6 +1216,7 @@ function renderInningsScorecard(inn, inningsNum, baseline) {
                   <td class="py-2.5 px-3 text-right text-slate-400 font-mono">${bw.economy}</td>
                   <td class="py-2.5 px-3 text-right text-slate-400 font-mono">${bw.dots || 0}</td>
                   <td class="py-2.5 px-4 text-right text-slate-400 font-mono">${bw.wd || 0}/${bw.nb || 0}</td>
+                  ${!isCRC ? `<td class="py-2.5 px-3 text-right text-purple-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBowlingImpact({...bw, dots: bw.dots || 0, maidens: bw.maidens || 0}, baseline).bowlPts)}</td>` : ''}
                 </tr>
               `;
             }).join('')}

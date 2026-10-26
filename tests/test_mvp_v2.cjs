@@ -184,8 +184,26 @@ test('Impact columns retain raw statistics and sort signed numbers numerically',
   assert.match(elements.get('leaderboard-orange-pill').textContent,/Jenson \(80 Runs\)/);
   assert.match(elements.get('leaderboard-purple-pill').textContent,/Davison \(5 Wkts\)/);
   const markup=run('renderInningsScorecard(matchesData[0].innings[0],1,getMatchMvpContext(matchesData[0]))');
-  assert.equal((markup.match(/>Impact<\/th>/g)||[]).length,2);
-  assert.match(markup,/Bowling Impact/);assert.match(markup,/Batting Impact/);
+  assert.equal((markup.match(/>Impact<\/th>/g)||[]).length,1);
+  assert.match(markup,/Bowling Impact/);assert.doesNotMatch(markup,/Batting Impact/);
+  for (const match of matches) {
+    context.__scorecardMatch=match;
+    const innings=json('__scorecardMatch.innings.map((inn,i)=>({crc:isCrcTeam(inn),html:renderInningsScorecard(inn,i+1,getMatchMvpContext(__scorecardMatch))}))');
+    for(const inn of innings) {
+      const tables=[...inn.html.matchAll(/<table[\s\S]*?<\/table>/g)].map(m=>m[0]);
+      tables.forEach((table,index)=>{
+        const ownsImpact=index===0?inn.crc:!inn.crc;
+        const headers=[...table.matchAll(/<th\b[^>]*>([^<]*)<\/th>/g)].map(m=>m[1]);
+        assert.equal(headers.includes('Impact'),ownsImpact);
+        if(ownsImpact)assert.equal(headers.at(-1),'Impact');
+        for(const row of table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/g)) {
+          const cells=[...row[1].matchAll(/<(?:td|th)\b([^>]*)>/g)];
+          const width=cells.reduce((sum,cell)=>sum+Number(cell[1].match(/colspan="(\d+)"/)?.[1]||1),0);
+          assert.equal(width,headers.length,'aligned scorecard cells, including extras');
+        }
+      });
+    }
+  }
   assert.match(markup,/42\.4/,'Macroom Jenson bowling remains 42.4 before fielding');
 });
 

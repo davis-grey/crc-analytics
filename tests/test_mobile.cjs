@@ -78,7 +78,7 @@ const server=http.createServer((req,res)=>{
           await page.screenshot({path:path.join(output,`corkindians-awards-${width}.png`),fullPage:true});
         }
         await page.getByRole('button',{name:'Scorecard',exact:true}).click();
-        assert.equal(await page.locator('#scorecard-tables-container th').filter({hasText:/^Impact$/}).count(),4);
+        assert.equal(await page.locator('#scorecard-tables-container th').filter({hasText:/^Impact$/}).count(),2);
         await noOverflow(id+' scorecards');
         if(id==='csk-s3-m3-corkindians')await page.screenshot({path:path.join(output,`scorecard-${width}.png`),fullPage:true});
       }
