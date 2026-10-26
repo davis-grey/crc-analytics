@@ -49,3 +49,11 @@
 - Impact-ranked discipline honours, full precision ties, all tied podium places, one-decimal points, player career/history points and updated formula explanation.
 - Independent rational-arithmetic verification of every player in all seven fixtures. Macroom Jenson is 57.4 including a recorded +15 run-out; supplied 42.4 is his bowling contribution only.
 - No historical data, new frameworks or average-per-appearance feature changes. V1.0 methodology/snapshot archived.
+
+## 2026-10-26 — Final fielding decisions and Impact displays
+
+- Final weights: catches +8, run-outs +12 once to a verified primary fielder, stumpings +12. Ambiguous/missing run-out fielders are not inferred or multiply credited. Source dismissal text is preserved.
+- Shared engine now exposes cumulative batting, bowling and fielding impact. Numeric-sortable season Impact columns, match scorecard Impact columns and profile/history components preserve the traditional runs/wickets Cap races.
+- Explicit Cork Indians baseline/component regression; no wicket-haul or wicket-over bonuses. Independent historical audit updated to final weights.
+- Both future features documented only: average MVP per appearance and bowling achievement badges.
+- Added isolated CI browser checks and screenshot artifacts for 320/393/430px phones and 1280px desktop; no app dependencies or deployments.

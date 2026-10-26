@@ -90,8 +90,10 @@ These constraints do **not** prevent you from adding a new tournament entirely t
 
 ## Statistical MVP v2.0
 
-Current rankings use [CRC MVP v2.0](docs/MVP_METHODOLOGY.md): match scoring baseline, strike rate impact, runs saved impact, scheduled-over milestones, 20 points per bowler wicket, and unchanged fielding weights. Statistical MVP and official POTM are distinct: **POTM adds zero MVP points**. Negative values are retained; only point displays round to one decimal. Season MVP sums unrounded match totals in the same central `stats.js` engine.
+Current rankings use [CRC MVP v2.0](docs/MVP_METHODOLOGY.md): match scoring baseline, strike rate impact, runs saved impact, scheduled-over milestones, 20 points per bowler wicket, and final fielding weights (catch +8, run-out +12 once to the primary credited fielder, stumping +12). Statistical MVP and official POTM are distinct: **POTM adds zero MVP points**. Negative values are retained; only point displays round to one decimal. Season MVP sums unrounded match totals in the same central `stats.js` engine.
 
 Top Batter/Bowler/Fielder use discipline impact. Orange/Purple Caps still use runs/wickets. See the [seven-match recalculation and season standings](docs/MVP_V2_RELEASE_REVIEW.md), including the Macroom run-out discrepancy. Historical scores, lineups and awards are unchanged. This is a review branch; production must not be merged until reviewed.
 
-The proposed **Average MVP Points per Appearance** feature remains parked and unimplemented.
+The proposed **Average MVP Points per Appearance** feature and **bowling achievement badges (2-wicket hauls, 2-wicket overs, 3-wicket hauls)** remain parked and unimplemented; these badges would add no MVP points. See [backlog](docs/BACKLOG.md).
+
+For real mobile/desktop rendering checks, GitHub Actions runs `tests/test_mobile.cjs` at 320, 393, 430 and 1280 pixels. Playwright is installed only into the runner’s temporary test directory; there are no new application packages or runtime dependencies. The workflow uploads review screenshots without deploying the application.

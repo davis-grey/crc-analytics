@@ -5,7 +5,7 @@
 const MVP_WEIGHTS = Object.freeze({
   RUN: 1, FOUR: 1, SIX: 2, MILESTONE: 5,
   WICKET: 20, MAIDEN: 12, DOT_BALL: 1,
-  RUNS_SAVED: 1.5, CATCH: 10, RUNOUT: 15, STUMPING: 12
+  RUNS_SAVED: 1.5, CATCH: 8, RUNOUT: 12, STUMPING: 12
 });
 
 function getMatchMvpContext(match) {
@@ -38,6 +38,19 @@ function calculateBowlingImpact(b, baseline) {
 
 function calculateFieldingImpact(f) {
   return f.catches * MVP_WEIGHTS.CATCH + f.runouts * MVP_WEIGHTS.RUNOUT + f.stumpings * MVP_WEIGHTS.STUMPING;
+}
+
+// A run-out earns exactly one fielding credit. Multiple names do not identify
+// the primary thrower; only verified source metadata can disambiguate them.
+function getRunoutFielder(record) {
+  if (!/run\s?out/i.test(record.dismissal || '')) return null;
+  if (record.runoutFielder !== undefined) {
+    const primary = typeof record.runoutFielder === 'string' ? record.runoutFielder.trim() : '';
+    return primary && !/[/,&]|\s+and\s+/i.test(primary) ? normalizePlayerName(primary) : null;
+  }
+  const recorded = (record.dismissal || '').match(/run\s?out\s*\(([^)]+)\)/i)?.[1]?.trim();
+  if (!recorded || /[/,&]|\s+and\s+/i.test(recorded)) return null;
+  return normalizePlayerName(recorded);
 }
 
 // Only floating-point representation noise is treated as equal. Display rounding
@@ -169,16 +182,12 @@ function getMatchCrcAwards(match) {
       fieldingMap[bn].catches += 1;
       fieldingMap[bn].total += 1;
     }
-    if (/run\s?out/i.test(d)) {
-      const rm = d.match(/run\s?out\s*\(([^)]+)\)/i);
-      if (rm && rm[1]) {
-        rm[1].split('/').forEach(fn => {
-          const cleanN = normalizePlayerName(fn.trim());
-          if (!fieldingMap[cleanN]) fieldingMap[cleanN] = { name: cleanN, catches: 0, runouts: 0, stumpings: 0, total: 0 };
-          fieldingMap[cleanN].runouts += 1;
-          fieldingMap[cleanN].total += 1;
-        });
-      }
+    const runoutFielder = getRunoutFielder(b);
+    if (runoutFielder) {
+      const fn = runoutFielder;
+      if (!fieldingMap[fn]) fieldingMap[fn] = { name: fn, catches: 0, runouts: 0, stumpings: 0, total: 0 };
+      fieldingMap[fn].runouts += 1;
+      fieldingMap[fn].total += 1;
     }
     if (d.includes('st ')) {
       const sm = d.match(/^st (.+?) b /i);
@@ -326,6 +335,7 @@ function calculateSeasonStats() {
       stumpings: 0,
       potmCount: 0,
       mvpPoints: 0,
+      battingImpact: 0, bowlingImpact: 0, fieldingImpact: 0,
       recentScores: [],
       awards: {
         topBatter: 0,
@@ -348,6 +358,9 @@ function calculateSeasonStats() {
     matchAwards.mvps.forEach(score => {
       if (!stats[score.name]) stats[score.name] = createEmptyPlayerStat(score.name);
       stats[score.name].mvpPoints += score.totalPts;
+      stats[score.name].battingImpact += score.batPts;
+      stats[score.name].bowlingImpact += score.bowlPts;
+      stats[score.name].fieldingImpact += score.fieldPts;
     });
     (matchAwards.topBatterWinners || (matchAwards.topBatterWinner ? [matchAwards.topBatterWinner] : [])).forEach(w => {
       const n = w.name;
@@ -501,6 +514,7 @@ function createEmptyPlayerStat(name) {
     stumpings: 0,
     potmCount: 0,
     mvpPoints: 0,
+    battingImpact: 0, bowlingImpact: 0, fieldingImpact: 0,
     recentScores: [],
     awards: {
       topBatter: 0,

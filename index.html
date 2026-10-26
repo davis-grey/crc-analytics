@@ -492,7 +492,7 @@
               <h3 class="font-bold text-white text-base flex items-center gap-2">
                 Club MVP Impact Standings
               </h3>
-              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+              <p class="text-xs text-slate-400">Impact = full v2.0 discipline points • Swipe for all figures • Click headers to sort</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -531,7 +531,7 @@
               <h3 class="font-bold text-white text-base flex items-center gap-2">
                 Batting Leaderboard (Orange Cap Race)
               </h3>
-              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+              <p class="text-xs text-slate-400">Impact = full v2.0 discipline points • Swipe for all figures • Click headers to sort</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -542,11 +542,12 @@
           </div>
         </summary>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+          <table class="w-full min-w-[680px] whitespace-nowrap text-left text-xs">
             <thead>
               <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
                 <th class="py-3 px-4">Rank</th>
                 <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('batting', 'name')">Player <span id="sort-bat-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-amber-400 whitespace-nowrap" title="Batting Impact: full v2.0 batting component" onclick="sortLeaderboard('batting', 'battingImpact')">Impact <span id="sort-bat-battingImpact"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'matches')">Mat <span id="sort-bat-matches"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('batting', 'innings')">Inns <span id="sort-bat-innings"></span></th>
                 <th class="py-3 px-3 text-right sortable-th text-white font-bold" onclick="sortLeaderboard('batting', 'runs')">Runs <span id="sort-bat-runs"></span></th>
@@ -572,7 +573,7 @@
               <h3 class="font-bold text-white text-base flex items-center gap-2">
                 Bowling Leaderboard (Purple Cap Race)
               </h3>
-              <p class="text-xs text-slate-400">Click column headers to sort • Click header to collapse/expand</p>
+              <p class="text-xs text-slate-400">Impact = full v2.0 discipline points • Swipe for all figures • Click headers to sort</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
@@ -583,11 +584,12 @@
           </div>
         </summary>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs">
+          <table class="w-full min-w-[680px] whitespace-nowrap text-left text-xs">
             <thead>
               <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
                 <th class="py-3 px-4">Rank</th>
                 <th class="py-3 px-4 sortable-th" onclick="sortLeaderboard('bowling', 'name')">Bowler <span id="sort-bowl-name"></span></th>
+                <th class="py-3 px-3 text-right sortable-th text-purple-400 whitespace-nowrap" title="Bowling Impact: full v2.0 bowling component" onclick="sortLeaderboard('bowling', 'bowlingImpact')">Impact <span id="sort-bowl-bowlingImpact"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'overs')">Overs <span id="sort-bowl-overs"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'maidens')">Mdns <span id="sort-bowl-maidens"></span></th>
                 <th class="py-3 px-3 text-right sortable-th" onclick="sortLeaderboard('bowling', 'runsConceded')">Runs <span id="sort-bowl-runsConceded"></span></th>
@@ -694,11 +696,11 @@
           <h4 class="font-bold text-purple-400 text-sm mb-2">Bowling Impact</h4>
           <p>(20 × bowler-credited wickets) + dots + (12 × maidens) + runs saved impact.</p>
           <p class="mt-2">Runs saved impact = 1.5 × [(legal balls bowled × Match RPB) − runs conceded]. Use scorecard bowling runs, including charged wides and no-balls. Run-outs do not give a bowler wicket.</p>
-          <p class="mt-2">No multi-over multiplier and no fixed economy bonus.</p>
+          <p class="mt-2">No multi-over multiplier, fixed economy bonus or extra wicket-haul/wicket-over bonuses.</p>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-sky-500/30">
           <h4 class="font-bold text-sky-400 text-sm mb-2">Fielding Impact</h4>
-          <p>Catch +10 • Run-out +15 • Stumping +12. A caught-and-bowled also earns catch points. Shared run-out credits follow the recorded participants.</p>
+          <p>Catch +8 • Run-out +12 • Stumping +12. A caught-and-bowled also earns catch points. Run-out points go once to the identified primary fielder; no split, inferred assist or multiple credits. Unidentified fielding credit remains unattributed.</p>
         </div>
         <div class="p-3.5 rounded-xl bg-slate-950/70 border border-emerald-500/30">
           <h4 class="font-bold text-emerald-400 text-sm mb-2">Statistical MVP ≠ Official Player of the Match</h4>
@@ -785,6 +787,11 @@
       <div class="mb-4 grid grid-cols-2 gap-3 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
         <div><span class="text-[10px] text-slate-400 block">Statistical MVP v2.0</span><span id="modal-stat-mvp" class="font-mono font-bold text-red-300">0.0</span></div>
         <div><span class="text-[10px] text-slate-400 block">Official POTM awards</span><span id="modal-stat-potm" class="font-mono font-bold text-amber-300">0</span></div>
+      </div>
+      <div class="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+        <div><span class="text-[10px] text-slate-400 block">Batting Impact</span><span id="modal-stat-batting-impact" class="font-mono text-amber-400">0.0</span></div>
+        <div><span class="text-[10px] text-slate-400 block">Bowling Impact</span><span id="modal-stat-bowling-impact" class="font-mono text-purple-400">0.0</span></div>
+        <div><span class="text-[10px] text-slate-400 block">Fielding Impact</span><span id="modal-stat-fielding-impact" class="font-mono text-sky-400">0.0</span></div>
       </div>
       <!-- Match Honors & Awards Summary Grid -->
       <div class="mb-5">

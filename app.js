@@ -1047,7 +1047,7 @@ function renderMatchAwardsSubTab(match) {
                 renderPodiumItem(
                   place,
                   b.name,
-                  `${formatMvpPoints(b.batPts)} Batting Pts`,
+                  `${formatMvpPoints(b.batPts)} Batting Impact`,
                   `Runs ${b.runs} (${b.balls}b) • SR ${b.sr} • ${b.sixes}x6, ${b.fours}x4 • ${b.isNotOut ? 'Not Out' : 'Out'}`,
                   'amber'
                 )
@@ -1070,7 +1070,7 @@ function renderMatchAwardsSubTab(match) {
                 renderPodiumItem(
                   place,
                   bw.name,
-                  `${formatMvpPoints(bw.bowlPts)} Bowling Pts`,
+                  `${formatMvpPoints(bw.bowlPts)} Bowling Impact`,
                   `Figures ${bw.wickets}/${bw.runs} (${bw.overs} ov) • Econ ${bw.economy} • ${bw.maidens} Mdns • ${bw.dots} Dots`,
                   'purple'
                 )
@@ -1112,12 +1112,12 @@ function renderScorecardPanel(match) {
   if (!container) return;
 
   container.className = 'space-y-4';
-  container.innerHTML = match.innings.map((inn, idx) => renderInningsScorecard(inn, idx + 1)).join('');
+  container.innerHTML = match.innings.map((inn, idx) => renderInningsScorecard(inn, idx + 1, getMatchMvpContext(match))).join('');
 
   if (window.lucide) window.lucide.createIcons();
 }
 
-function renderInningsScorecard(inn, inningsNum) {
+function renderInningsScorecard(inn, inningsNum, baseline) {
   const isCRC = isCrcTeam(inn);
 
   return `
@@ -1146,6 +1146,7 @@ function renderInningsScorecard(inn, inningsNum) {
           <thead>
             <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <th class="py-2.5 px-4 font-semibold">Batter</th>
+              <th class="py-2.5 px-3 text-right font-semibold text-amber-400" title="Batting Impact: full CRC MVP v2.0 batting component">Impact</th>
               <th class="py-2.5 px-2 font-semibold">Dismissal</th>
               <th class="py-2.5 px-3 text-right font-semibold text-white">R</th>
               <th class="py-2.5 px-3 text-right font-semibold">B</th>
@@ -1163,6 +1164,7 @@ function renderInningsScorecard(inn, inningsNum) {
                     <span class="cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${cleanPlayer}')">${cleanPlayer}</span>
                     ${b.dismissal.toLowerCase().includes('not out') ? '<span class="text-emerald-400 text-[10px]">*</span>' : ''}
                   </td>
+                  <td class="py-2.5 px-3 text-right text-amber-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBattingImpact(b, baseline).batPts)}</td>
                   <td class="py-2.5 px-2 text-slate-400 truncate max-w-xs">${b.dismissal}</td>
                   <td class="py-2.5 px-3 text-right font-bold text-white font-mono">${b.runs}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${b.balls}</td>
@@ -1173,7 +1175,7 @@ function renderInningsScorecard(inn, inningsNum) {
               `;
             }).join('')}
             <tr class="bg-slate-950/30 text-slate-300 font-medium">
-              <td class="py-2 px-4" colspan="2">Extras (${formatExtras(inn.extras)})</td>
+              <td class="py-2 px-4" colspan="3">Extras (${formatExtras(inn.extras)})</td>
               <td class="py-2 px-3 text-right font-bold font-mono text-white">${inn.extras?.total || 0}</td>
               <td colspan="4" class="py-2 px-4 text-right text-slate-400 text-[11px]">(Overs: ${inn.overs}, RR: ${inn.runRate})</td>
             </tr>
@@ -1186,6 +1188,7 @@ function renderInningsScorecard(inn, inningsNum) {
           <thead>
             <tr class="bg-slate-950/60 text-slate-400 border-b border-slate-800">
               <th class="py-2.5 px-4 font-semibold">Bowler</th>
+              <th class="py-2.5 px-3 text-right font-semibold text-purple-400" title="Bowling Impact: full CRC MVP v2.0 bowling component">Impact</th>
               <th class="py-2.5 px-3 text-right font-semibold">O</th>
               <th class="py-2.5 px-3 text-right font-semibold">M</th>
               <th class="py-2.5 px-3 text-right font-semibold text-white">R</th>
@@ -1203,6 +1206,7 @@ function renderInningsScorecard(inn, inningsNum) {
                   <td class="py-2.5 px-4 font-medium text-white whitespace-nowrap cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${cleanBowler}')">
                     ${cleanBowler}
                   </td>
+                  <td class="py-2.5 px-3 text-right text-purple-400 font-mono whitespace-nowrap">${formatMvpPoints(calculateBowlingImpact({...bw, dots: bw.dots || 0, maidens: bw.maidens || 0}, baseline).bowlPts)}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.overs}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.maidens || 0}</td>
                   <td class="py-2.5 px-3 text-right text-slate-300 font-mono">${bw.runs}</td>
@@ -1420,6 +1424,7 @@ function renderLeaderboardTab() {
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
         </td>
+        <td class="py-3 px-3 text-right text-amber-400 font-mono whitespace-nowrap">${formatMvpPoints(p.battingImpact)}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.matches}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.innings}</td>
         <td class="py-3 px-3 text-right font-bold text-white font-mono">${p.runs}</td>
@@ -1450,6 +1455,7 @@ function renderLeaderboardTab() {
         <td class="py-3 px-4 font-semibold text-white cursor-pointer hover:text-amber-400" onclick="openPlayerProfileByName('${p.name}')">
           ${p.name}
         </td>
+        <td class="py-3 px-3 text-right text-purple-400 font-mono whitespace-nowrap">${formatMvpPoints(p.bowlingImpact)}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.overs}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.maidens}</td>
         <td class="py-3 px-3 text-right text-slate-300 font-mono">${p.runsConceded}</td>
@@ -1642,6 +1648,9 @@ function openPlayerProfileByName(name) {
   document.getElementById('modal-stat-best').textContent = `${p.bestBowling.wkts}/${p.bestBowling.runs === 999 ? 0 : p.bestBowling.runs}`;
   document.getElementById('modal-stat-catches').textContent = p.totalFielding;
 
+  document.getElementById('modal-stat-batting-impact').textContent = formatMvpPoints(p.battingImpact);
+  document.getElementById('modal-stat-bowling-impact').textContent = formatMvpPoints(p.bowlingImpact);
+  document.getElementById('modal-stat-fielding-impact').textContent = formatMvpPoints(p.fieldingImpact);
   document.getElementById('modal-stat-mvp').textContent = formatMvpPoints(p.mvpPoints);
   document.getElementById('modal-stat-potm').textContent = p.potmCount;
 
@@ -1685,7 +1694,7 @@ function openPlayerProfileByName(name) {
               <div class="text-[11px] text-slate-400">${match.date} • Result: ${match.result}</div>
             </div>
             <div class="text-right space-y-0.5">
-              ${matchImpact ? `<div class="font-mono font-bold text-red-300">Statistical MVP: ${formatMvpPoints(matchImpact.totalPts)} pts</div>` : ''}
+              ${matchImpact ? `<div class="font-mono font-bold text-red-300">Statistical MVP: ${formatMvpPoints(matchImpact.totalPts)} pts</div><div class="font-mono text-[10px] text-slate-400">Batting Impact ${formatMvpPoints(matchImpact.batPts)} • Bowling Impact ${formatMvpPoints(matchImpact.bowlPts)} • Fielding Impact ${formatMvpPoints(matchImpact.fieldPts)}</div>` : ''}
               ${batRecord ? `<div class="font-mono font-bold text-amber-400">Bat: ${batRecord.runs} (${batRecord.balls}b, ${batRecord.sixes}x6)</div>` : (!bowlRecord ? `<div class="font-mono text-slate-400 text-[11px]">Did Not Bat</div>` : '')}
               ${bowlRecord ? `<div class="font-mono text-sky-400">Bowl: ${bowlRecord.overs} ov, ${bowlRecord.wickets}-${bowlRecord.runs}</div>` : ''}
             </div>
