@@ -26,6 +26,8 @@ let awardsSort = { col: 'mvpPoints', asc: false };
 document.addEventListener('DOMContentLoaded', async () => {
   await loadInitialData();
   setupEventListeners();
+  // Return from the methodology page to the MVP rankings.
+  if (window.location.hash === '#leaderboard') currentTab = 'leaderboard';
   renderApp();
 });
 
@@ -958,6 +960,7 @@ function renderMatchAwardsSubTab(match) {
             <div>
               <h3 class="font-black text-white text-base">Match Honors & Accolades (CRC)</h3>
               <p class="text-xs text-slate-400">Statistical MVP v2.0 • Official POTM is tracked separately (zero points)</p>
+              <a href="methodology.html" class="text-xs text-amber-400 hover:text-amber-300 underline underline-offset-4">MVP Methodology v2.0</a>
             </div>
           </div>
           <span class="text-xs text-amber-400 font-bold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/30">

@@ -97,3 +97,9 @@ Top Batter/Bowler/Fielder use discipline impact. Orange/Purple Caps still use ru
 The proposed **Average MVP Points per Appearance** feature and **bowling achievement badges (2-wicket hauls, 2-wicket overs, 3-wicket hauls)** remain parked and unimplemented; these badges would add no MVP points. See [backlog](docs/BACKLOG.md).
 
 For real mobile/desktop rendering checks, GitHub Actions runs `tests/test_mobile.cjs` at 320, 393, 430 and 1280 pixels. Playwright is installed only into the runner’s temporary test directory; there are no new application packages or runtime dependencies. The workflow uploads review screenshots without deploying the application.
+
+### MVP Methodology page
+
+Open `methodology.html` from desktop/mobile navigation, MVP rankings or the formula explanation. The approved content is in `docs/CRC_MVP_v2_Methodology_ASD_STE100_Style.md`. This source remains separate from the historical/internal methodology record. The page uses the existing dark palette, native expandable examples, a glossary and tables that scroll within the page on mobile. It needs no application data or Markdown runtime dependency.
+
+After an approved documentation change, run `python scripts/build_methodology.py`. Check the committed page with `python scripts/build_methodology.py --check`. Tests require the source, rendered page and scoring engine to identify the same MVP version. Change scoring only through a separately approved formula update.

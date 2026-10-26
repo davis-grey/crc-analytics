@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="crc-mvp-version" content="2.0">
+  <meta name="description" content="CRC MVP v2.0: approved formulas, scoring tables, examples and glossary.">
+  <title>MVP Methodology v2.0 | CRC Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {color-scheme:dark;scroll-behavior:smooth;scroll-padding-top:2rem}
+    * {box-sizing:border-box}
+    body {margin:0;background:#0b0f19;color:#e2e8f0;font:400 1rem/1.75 'Outfit',sans-serif}
+    a {color:#fbbf24;text-underline-offset:.2em}
+    a:hover {color:#fde68a}
+    a:focus-visible,summary:focus-visible,[tabindex]:focus-visible {outline:2px solid #fbbf24;outline-offset:5px}
+    .skip {position:absolute;left:1rem;top:-6rem;padding:.75rem;background:#0f172a;z-index:2}
+    .skip:focus {top:1rem}
+    header {border-bottom:1px solid #1e293b;background:#020617}
+    .header-inner {max-width:1180px;margin:auto;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .brand {font-weight:800;color:#f1f5f9;text-decoration:none}
+    .version {font-size:.8rem;color:#fbbf24;border:1px solid #785b25;border-radius:2rem;padding:.25rem .75rem;white-space:nowrap}
+    .layout {max-width:1180px;margin:2rem auto;display:grid;grid-template-columns:240px minmax(0,1fr);gap:2rem;padding:0 1.5rem}
+    .contents {align-self:start;background:#0f172a;border:1px solid #1e293b;border-radius:1rem;padding:1.25rem;font-size:.9rem}
+    .contents strong {display:block;margin-bottom:.75rem;color:#f1f5f9}
+    .contents nav {display:grid;gap:.65rem}
+    .contents a {text-decoration:none}
+    article {min-width:0;max-width:820px}
+    h1 {color:#f8fafc;font-size:clamp(1.85rem,5vw,2.7rem);line-height:1.2;margin:0 0 1rem;font-weight:800}
+    h2 {font-size:1.45rem;line-height:1.35;color:#f8fafc;border-top:1px solid #334155;margin:2.5rem 0 1rem;padding-top:1.75rem}
+    h3 {font-size:1.1rem;color:#fbbf24;margin:1.75rem 0 .75rem}
+    p {margin:.9rem 0}
+    strong {color:#f8fafc}
+    ul {padding-left:1.4rem}
+    li {margin:.5rem 0}
+    .note,.formula,.example {background:#0f172a;border:1px solid #334155;border-radius:.8rem;padding:1rem 1.2rem;margin:1.25rem 0}
+    .note {border-left:3px solid #fbbf24}
+    .formula {font-family:'JetBrains Mono',monospace;font-size:.9rem;overflow-wrap:anywhere;border-color:#785b25}
+    .example {background:#111b2e}
+    summary {cursor:pointer;font-weight:600;color:#fbbf24;line-height:1.5;padding:.3rem 0}
+    details[open]>summary {margin-bottom:1rem}
+    .table-scroll {max-width:100%;overflow-x:auto;border:1px solid #334155;border-radius:.8rem;margin:1.25rem 0;overscroll-behavior-x:contain}
+    table {border-collapse:collapse;width:100%;min-width:440px;font-size:.9rem;line-height:1.5;background:#0f172a}
+    th,td {padding:.8rem 1rem;text-align:left;vertical-align:top;border-bottom:1px solid #1e293b}
+    th {background:#1e293b;color:#f8fafc;font-weight:600}
+    tr:last-child td {border-bottom:0}
+    tbody tr:nth-child(even) {background:#131e32}
+    dl {display:grid;grid-template-columns:minmax(100px,1fr) 3fr;gap:.75rem 1.5rem}
+    dt {font-weight:600;color:#f8fafc}
+    dd {margin:0}
+    footer {border-top:1px solid #1e293b;padding:1.5rem;text-align:center;font-size:.9rem;color:#94a3b8}
+    hr {border:0;border-top:1px solid #334155;margin-top:2rem}
+    @media(max-width:800px) {.layout {grid-template-columns:minmax(0,1fr);gap:1.5rem;margin-top:1.5rem}.contents nav {grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:480px) {.layout {padding:0 1rem}.header-inner {padding:1rem}.contents nav {grid-template-columns:minmax(0,1fr)}.example,.formula,.note {padding:.85rem}th,td {padding:.7rem}.version {font-size:.75rem}dl {grid-template-columns:minmax(0,1fr);gap:.25rem}dd {margin-bottom:.75rem}}
+    @media(prefers-reduced-motion:reduce) {:root {scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#methodology">Skip to methodology</a>
+  <header><div class="header-inner"><a class="brand" href="index.html">CRC Analytics</a><span class="version">CRC MVP v2.0</span><a href="index.html#leaderboard">Back to MVP rankings</a></div></header>
+  <main class="layout" id="methodology">
+    <aside class="contents"><strong>On this page</strong><nav aria-label="Methodology sections"><a href="#1-why-crc-uses-this-method">1. Why CRC uses this method</a>
+<a href="#2-establish-the-match-baseline">2. Establish the match baseline</a>
+<a href="#3-calculate-batting-impact">3. Calculate batting impact</a>
+<a href="#4-calculate-bowling-impact">4. Calculate bowling impact</a>
+<a href="#5-calculate-fielding-impact">5. Calculate fielding impact</a>
+<a href="#6-calculate-the-statistical-mvp">6. Calculate the statistical MVP</a>
+<a href="#7-real-example-crc-against-cork-indians-cc">7. Real example: CRC against Cork Indians CC</a>
+<a href="#8-read-the-leaderboards">8. Read the leaderboards</a>
+<a href="#9-what-the-formula-does-not-measure">9. What the formula does not measure</a>
+<a href="#10-data-rules">10. Data rules</a><a href="#glossary">Glossary</a></nav><p>Tables: swipe for all columns.</p><a href="docs/CRC_MVP_v2_Methodology_ASD_STE100_Style.md" download>Download the approved guide</a></aside>
+    <article aria-label="Approved CRC MVP v2.0 methodology">
+<h1 id="how-crc-mvp-points-work">How CRC MVP Points Work</h1>
+<p><strong>CRC Analytics | Statistical scoring guide | Version 2.0</strong></p>
+<p>CRC Analytics measures player performance with the CRC MVP score. This score uses match statistics and the same rules for all players.</p>
+<p>The score has three parts: batting impact, bowling impact, and fielding impact. The sum of these parts gives the match MVP score.</p>
+<p>This is a CRC scoring system. It is <strong>not</strong> the official CricHeroes MVP formula. The method uses ideas from cricket performance analysis.</p>
+<aside class="note"><strong>Important:</strong> An official Player of the Match (POTM) award is a separate honor. It does not add MVP points.</aside>
+<h2 id="1-why-crc-uses-this-method">1. Why CRC uses this method</h2>
+<p>A run, a wicket, and a catch are different cricket events. A fair score must give credit for these events.</p>
+<p>Match conditions also change. Six runs in one over can be excellent in one match and ordinary in another match.</p>
+<p>CRC uses the match scoring rate to measure batting speed and bowling economy. This gives the same reference rate to both teams.</p>
+<p>The formula gives extra credit for boundaries, batting milestones, dot balls, and maiden overs. These bonuses are deliberate parts of the method.</p>
+<p>Some actions receive more than one type of credit. For example, a boundary earns run points and a boundary bonus.</p>
+<p>CRC accepts this overlap as part of the scoring method. The result is an impact score, not a pure runs-saved statistic.</p>
+<p>The formula does not measure every match situation. For example, it does not calculate the pressure of each delivery.</p>
+<h2 id="2-establish-the-match-baseline">2. Establish the match baseline</h2>
+<p>Use the final scores of both teams. Include all runs in the official innings totals, including extras.</p>
+<p>Use only <strong>legal deliveries</strong> to calculate the match scoring rate. A wide or no-ball is not a legal delivery.</p>
+<p class="formula"><strong>Match runs per ball (RPB)</strong> = Both teams&#x27; total runs ÷ Both teams&#x27; total legal deliveries.</p>
+<p class="formula"><strong>Match runs per over (RPO)</strong> = Match RPB × 6.</p>
+<details class="example"><summary>Example: CRC against Cork Indians CC</summary>
+<ul>
+<li>Cork Indians scored <strong>29 runs from 30 legal balls</strong>.</li>
+<li>CRC scored <strong>30 runs from 22 legal balls</strong>.</li>
+<li>Match runs = 29 + 30 = <strong>59</strong>.</li>
+<li>Match legal balls = 30 + 22 = <strong>52</strong>.</li>
+<li>Match RPB = 59 ÷ 52 = <strong>1.134615...</strong>.</li>
+<li>Match RPO = 1.134615... × 6 = <strong>6.807692...</strong>.</li>
+</ul>
+<p>Use the full values for all calculations. Round values only when you show them on the page.</p>
+</details>
+<h2 id="3-calculate-batting-impact">3. Calculate batting impact</h2>
+<div class="table-scroll" role="region" aria-label="Batting event table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Batting event</th>
+<th scope="col">MVP points</th>
+</tr></thead><tbody>
+<tr><td>Each run scored</td><td>+1</td></tr>
+<tr><td>Each four</td><td>+1 more</td></tr>
+<tr><td>Each six</td><td>+2 more</td></tr>
+<tr><td>First milestone</td><td>+5</td></tr>
+<tr><td>Second milestone</td><td>+5 more</td></tr>
+<tr><td>Strike-rate (SR) impact</td><td>Signed value from the formula below</td></tr>
+</tbody></table></div>
+<p class="formula"><strong>SR impact</strong> = Batter runs − (Batter balls faced × Match RPB).</p>
+<p class="formula"><strong>Total batting impact</strong> = Runs + Four bonuses + Six bonuses + Milestone points + SR impact.</p>
+<h3 id="why-use-sr-impact">Why use SR impact?</h3>
+<p>Runs alone do not show how quickly a batter scored. Each delivery is important in a short match.</p>
+<p>SR impact compares the batter&#x27;s runs with the match rate for the same number of balls.</p>
+<p>A positive value rewards faster scoring. A negative value records scoring below the match rate.</p>
+<p>CRC also gives small bonuses for boundaries. Boundaries are useful in short matches because they score runs quickly.</p>
+<h3 id="how-batting-milestones-work">How batting milestones work</h3>
+<p>Use the <strong>scheduled overs per innings</strong>. Do not use the number of overs played in a shortened chase.</p>
+<ul>
+<li>First milestone: Give <strong>+5</strong> when runs are at least scheduled overs × 3.</li>
+<li>Second milestone: Give <strong>+5 more</strong> when runs are at least scheduled overs × 5.</li>
+</ul>
+<div class="table-scroll" role="region" aria-label="Scheduled overs table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Scheduled overs</th>
+<th scope="col">First milestone (+5)</th>
+<th scope="col">Second milestone (+5 more)</th>
+</tr></thead><tbody>
+<tr><td>3</td><td>9 runs</td><td>15 runs</td></tr>
+<tr><td>4</td><td>12 runs</td><td>20 runs</td></tr>
+<tr><td>5</td><td>15 runs</td><td>25 runs</td></tr>
+<tr><td>8</td><td>24 runs</td><td>40 runs</td></tr>
+</tbody></table></div>
+<p>This rule sets higher milestones for longer matches. A player can receive both bonuses in one innings.</p>
+<details class="example" id="real-example-jenson-against-bd-tigers"><summary>Real example: Jenson against BD Tigers</summary>
+<p>CRC scored 37 runs. BD Tigers scored 34 runs. Both teams bowled a total of 54 legal balls.</p>
+<p>Match RPB = 71 ÷ 54 = <strong>1.314814...</strong>.</p>
+<p>Jenson scored <strong>29 runs from 18 balls</strong>. He hit <strong>one four and three sixes</strong>.</p>
+<div class="table-scroll" role="region" aria-label="Batting component table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Batting component</th>
+<th scope="col">Calculation</th>
+<th scope="col">Points</th>
+</tr></thead><tbody>
+<tr><td>Runs</td><td>29 × 1</td><td>+29.0</td></tr>
+<tr><td>Four bonus</td><td>1 × 1</td><td>+1.0</td></tr>
+<tr><td>Six bonuses</td><td>3 × 2</td><td>+6.0</td></tr>
+<tr><td>First milestone</td><td>29 ≥ 15</td><td>+5.0</td></tr>
+<tr><td>Second milestone</td><td>29 ≥ 25</td><td>+5.0</td></tr>
+<tr><td>SR impact</td><td>29 − (18 × 71 ÷ 54)</td><td>+5.3</td></tr>
+<tr><td><strong>Total batting impact</strong></td><td><strong>Calculate before rounding</strong></td><td><strong>51.3</strong></td></tr>
+</tbody></table></div>
+<p>Jenson scored faster than the match rate. The formula gives him extra points for that speed.</p>
+</details>
+<h2 id="4-calculate-bowling-impact">4. Calculate bowling impact</h2>
+<div class="table-scroll" role="region" aria-label="Bowling event table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Bowling event</th>
+<th scope="col">MVP points</th>
+</tr></thead><tbody>
+<tr><td>Each bowler-credited wicket</td><td>+20</td></tr>
+<tr><td>Each dot ball</td><td>+1</td></tr>
+<tr><td>Each maiden over</td><td>+12</td></tr>
+<tr><td>Runs saved impact</td><td>Signed value from the formula below</td></tr>
+</tbody></table></div>
+<p class="formula"><strong>Runs saved impact</strong> = 1.5 × [(Bowler legal balls × Match RPB) − Bowler runs conceded].</p>
+<p class="formula"><strong>Total bowling impact</strong> = Wicket points + Dot-ball points + Maiden points + Runs saved impact.</p>
+<h3 id="why-use-runs-saved">Why use runs saved?</h3>
+<p>A fixed economy limit does not fit all matches. Conditions and match scoring rates can change.</p>
+<p>Runs saved compares a bowler&#x27;s conceded runs with the match rate for the same number of legal deliveries.</p>
+<p>The factor of <strong>1.5</strong> gives economical bowling more weight. The factor is a CRC scoring choice, not a universal cricket standard.</p>
+<p>The same calculation also gives a negative value for expensive bowling.</p>
+<p>CRC reduced a wicket from <strong>25 points</strong> in the original method to <strong>20 points</strong> in v2.0.</p>
+<p>This reduces the advantage from a single wicket in an expensive over. The runs saved calculation also gives that over a negative adjustment.</p>
+<p>A maiden over can earn dot-ball points, maiden points, and runs saved points. CRC keeps this extra credit.</p>
+<p>A maiden uses six legal deliveries without a run charged to the bowler. It is unusual and valuable in short cricket matches.</p>
+<details class="example" id="real-example-davison-against-bd-tigers"><summary>Real example: Davison against BD Tigers</summary>
+<p>Match RPB = 71 ÷ 54 = <strong>1.314814...</strong>.</p>
+<p>Davison bowled <strong>six legal balls</strong>. He took <strong>two wickets</strong> and bowled <strong>four dots</strong>. He conceded <strong>two runs</strong>.</p>
+<div class="table-scroll" role="region" aria-label="Bowling component table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Bowling component</th>
+<th scope="col">Calculation</th>
+<th scope="col">Points</th>
+</tr></thead><tbody>
+<tr><td>Wickets</td><td>2 × 20</td><td>+40.0</td></tr>
+<tr><td>Dot balls</td><td>4 × 1</td><td>+4.0</td></tr>
+<tr><td>Maiden overs</td><td>None</td><td>+0.0</td></tr>
+<tr><td>Runs saved</td><td>1.5 × [(6 × 71 ÷ 54) − 2]</td><td>+8.8</td></tr>
+<tr><td><strong>Total bowling impact</strong></td><td><strong>Calculate before rounding</strong></td><td><strong>52.8</strong></td></tr>
+</tbody></table></div>
+<p>Jenson scored <strong>51.3 batting points</strong> in the same match. Davison scored <strong>52.8 bowling points</strong>.</p>
+<p>These two different performances receive similar scores. Davison leads by about <strong>1.5 points</strong>.</p>
+</details>
+<h3 id="why-are-there-no-wicket-haul-bonuses">Why are there no wicket-haul bonuses?</h3>
+<p>Each wicket already gives <strong>20 points</strong>. Two wickets give <strong>40 points</strong> before other bowling points.</p>
+<p>A two-wicket over is an excellent achievement. The app can show it as an award or badge.</p>
+<p>The formula gives no extra MVP points for two, three, or more wickets in one match or over.</p>
+<h3 id="why-is-there-no-multi-over-multiplier">Why is there no multi-over multiplier?</h3>
+<p>An additional over creates more opportunity and more risk. The runs saved calculation already uses legal deliveries.</p>
+<p>A separate multiplier can reduce points when a bowler starts a second over. CRC does not use that multiplier.</p>
+<h2 id="5-calculate-fielding-impact">5. Calculate fielding impact</h2>
+<div class="table-scroll" role="region" aria-label="Fielding event table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">Fielding event</th>
+<th scope="col">MVP points</th>
+</tr></thead><tbody>
+<tr><td>Catch</td><td>+8</td></tr>
+<tr><td>Stumping</td><td>+12</td></tr>
+<tr><td>Run-out</td><td>+12</td></tr>
+</tbody></table></div>
+<h3 id="why-use-these-points">Why use these points?</h3>
+<p>A catch helps complete a wicket. A stumping needs a special wicketkeeping action.</p>
+<p>A run-out can create a wicket without a credited bowling wicket. CRC gives that fielding action 12 points.</p>
+<p>CRC gives <strong>8 points for a catch</strong>. This keeps catches valuable without making them equal to a bowling wicket.</p>
+<h3 id="how-run-out-credit-works">How run-out credit works</h3>
+<p>Some scoring apps record only the fielder who makes the first throw. They do not always name the player who receives the throw.</p>
+<p>CRC gives all <strong>12 points</strong> to the primary fielder in the official scorecard. CRC does not estimate other fielders&#x27; involvement.</p>
+<p>CRC does not use different scores for direct-hit and assisted run-outs.</p>
+<p>If no fielder is named, keep the run-out in the scorecard. Do not assign fielding points to an unknown player.</p>
+<p>A caught-and-bowled dismissal gives a bowler-credited wicket and a catch to the same player when the scorecard confirms both events.</p>
+<h2 id="6-calculate-the-statistical-mvp">6. Calculate the statistical MVP</h2>
+<p class="formula"><strong>Match MVP points</strong> = Batting impact + Bowling impact + Fielding impact.</p>
+<p>The app keeps the full values for calculations. It shows final points to one decimal place.</p>
+<p>The app keeps negative values. It does not change a negative score to zero.</p>
+<h3 id="why-can-a-score-be-negative">Why can a score be negative?</h3>
+<p>A below-average performance can cost the team runs relative to the match rate. The formula records this difference.</p>
+<p><strong>Example:</strong> A batter scores 8 runs from 12 balls. The match rate is 1.5 runs per ball.</p>
+<ul>
+<li>Base runs = <strong>+8</strong>.</li>
+<li>SR impact = 8 − (12 × 1.5) = <strong>−10</strong>.</li>
+<li>Batting impact = 8 − 10 = <strong>−2</strong>, if there are no other bonuses.</li>
+</ul>
+<p>A negative score does not mean that the player made no effort. It reports the result of this scoring method.</p>
+<p>The full CRC MVP method is <strong>not</strong> a zero-sum formula. Runs, wickets, boundaries, and other events add positive points.</p>
+<h2 id="7-real-example-crc-against-cork-indians-cc">7. Real example: CRC against Cork Indians CC</h2>
+<details class="example"><summary>Read the Cork Indians example</summary>
+<p>CRC won the five-over quarter-final. The statistical MVP scores were close.</p>
+<p>Match RPB = <strong>59 ÷ 52 = 1.134615...</strong>.</p>
+<div class="table-scroll" role="region" aria-label="Statistical rank table. Scroll for all columns." tabindex="0"><table style="min-width:660px"><thead><tr>
+<th scope="col">Statistical rank</th>
+<th scope="col">Player</th>
+<th scope="col">Batting impact</th>
+<th scope="col">Bowling impact</th>
+<th scope="col">Fielding impact</th>
+<th scope="col">Total MVP</th>
+</tr></thead><tbody>
+<tr><td>1</td><td><strong>Srikanth</strong></td><td>+13.1</td><td>+17.7</td><td>0.0</td><td><strong>30.8</strong></td></tr>
+<tr><td>2</td><td><strong>Davison</strong></td><td>0.0</td><td>+28.7</td><td>0.0</td><td><strong>28.7</strong></td></tr>
+<tr><td>3</td><td><strong>Savio</strong></td><td>0.0</td><td>+27.7</td><td>0.0</td><td><strong>27.7</strong></td></tr>
+</tbody></table></div>
+<h3 id="why-srikanth-ranks-first">Why Srikanth ranks first</h3>
+<p>Srikanth scored <strong>10 runs from seven balls</strong>. He hit one four.</p>
+<p>His batting impact is <strong>10 + 1 + [10 − (7 × 59 ÷ 52)] = 13.1</strong>.</p>
+<p>He also took <strong>one wicket</strong>, bowled <strong>one dot</strong>, and conceded <strong>nine runs in one over</strong>.</p>
+<p>His bowling impact is <strong>20 + 1 + 1.5 × [(6 × 59 ÷ 52) − 9] = 17.7</strong>.</p>
+<p>His combined score is <strong>30.8</strong>. His batting and bowling contributions put him in first position.</p>
+<h3 id="why-davison-ranks-second">Why Davison ranks second</h3>
+<p>Davison took <strong>one wicket</strong>, bowled <strong>three dots</strong>, and conceded <strong>three runs in one over</strong>.</p>
+<p>His bowling impact is <strong>20 + 3 + 1.5 × [(6 × 59 ÷ 52) − 3] = 28.7</strong>.</p>
+<p>His over was much more economical than the match rate. He finishes second by approximately <strong>2.1 points</strong>.</p>
+<h3 id="why-savio-ranks-third">Why Savio ranks third</h3>
+<p>Savio also took <strong>one wicket</strong> and conceded <strong>three runs in one over</strong>. He bowled <strong>two dots</strong>.</p>
+<p>His bowling impact is <strong>20 + 2 + 1.5 × [(6 × 59 ÷ 52) − 3] = 27.7</strong>.</p>
+<p>Savio and Davison had the same wicket count and runs conceded. Davison receives one more point for an extra dot.</p>
+<p><strong>Official POTM:</strong> Davison received the official Player of the Match award. The award remains on his record.</p>
+<p>The official award does <strong>not</strong> change the statistical MVP ranking. The award and the statistical result can identify different players.</p>
+<p>Even a small POTM bonus could change the statistical winner. A three-point bonus would put Davison ahead of Srikanth in this match.</p>
+<p>CRC records official awards separately. This keeps match honors independent of statistical scoring.</p>
+</details>
+<h2 id="8-read-the-leaderboards">8. Read the leaderboards</h2>
+<div class="table-scroll" role="region" aria-label="App section table. Scroll for all columns." tabindex="0"><table style="min-width:440px"><thead><tr>
+<th scope="col">App section</th>
+<th scope="col">Ranking method</th>
+<th scope="col">Other information shown</th>
+</tr></thead><tbody>
+<tr><td>Match MVP</td><td>Total MVP impact points</td><td>Batting, bowling, and fielding impact</td></tr>
+<tr><td>Top Batting Performance</td><td>Batting impact points</td><td>Runs, balls, and strike rate</td></tr>
+<tr><td>Top Bowling Performance</td><td>Bowling impact points</td><td>Wickets, overs, and economy</td></tr>
+<tr><td>Top Fielding Performance</td><td>Fielding impact points</td><td>Catches, run-outs, and stumpings</td></tr>
+<tr><td>Season MVP</td><td>Sum of match MVP points</td><td>Separate POTM award count</td></tr>
+<tr><td>Orange Cap</td><td>Most runs</td><td>Batting impact as another column</td></tr>
+<tr><td>Purple Cap</td><td>Most wickets</td><td>Bowling impact as another column</td></tr>
+</tbody></table></div>
+<p>An Orange Cap leader does not have to lead the batting impact ranking. A Purple Cap leader does not have to lead bowling impact.</p>
+<p>Traditional statistics and impact points answer different questions. Show both when the data is available.</p>
+<h3 id="ties-and-display-values">Ties and display values</h3>
+<p>The app uses full-precision points to calculate rankings. It rounds the displayed values to one decimal place.</p>
+<p>Players with exactly equal calculated points share a ranking. The app shows <strong>WINNER</strong> for all players who share first place.</p>
+<h2 id="9-what-the-formula-does-not-measure">9. What the formula does not measure</h2>
+<p>The formula uses scorecard events and the combined match scoring rate. It does not calculate the exact value of each match situation.</p>
+<p>For example, it gives every bowler-credited wicket 20 points. It does not add points for the batter&#x27;s reputation or dismissal time.</p>
+<p>The same scoring rules apply to three-, four-, five-, and eight-over matches. The batting milestones change with scheduled match overs.</p>
+<p>Longer matches can still produce more total points because they contain more deliveries. Raw season totals measure accumulated impact, not impact per appearance.</p>
+<p>CRC can add a separate <strong>average MVP points per appearance</strong> leaderboard in a future release. This feature is not part of v2.0.</p>
+<h2 id="10-data-rules">10. Data rules</h2>
+<p>Use the official scorecard data. Do not guess missing player names, catches, wickets, or overs.</p>
+<p>Calculate cricket overs from legal balls. <strong>3.4 overs means 22 legal balls</strong>, not 3.4 decimal overs.</p>
+<p>A wide or no-ball is not a legal delivery. A no-ball can still count as a ball faced by the batter in the source scorecard.</p>
+<p>For bowling impact, use the runs charged to the bowler in the scorecard. Do not substitute the innings total for bowler runs.</p>
+<p>Use the scheduled overs for batting milestones. Use the actual legal deliveries for the match baseline and bowling impact.</p>
+<hr>
+<p><strong>Method:</strong> CRC MVP v2.0. <strong>Status:</strong> Approved scoring specification; publish this page with the v2.0 application release.</p>
+<section aria-labelledby="glossary"><h2 id="glossary">Glossary</h2><dl><dt>Baseline</dt><dd>The combined match scoring rate. Use the same rate for both teams.</dd><dt>RPB</dt><dd>Runs per ball. Divide combined innings runs by combined legal deliveries.</dd><dt>RPO</dt><dd>Runs per over. Multiply match RPB by six.</dd><dt>Legal delivery</dt><dd>A delivery that counts in an over. A wide or no-ball does not count.</dd><dt>Scheduled overs</dt><dd>The agreed number of overs per innings. Do not use a shorter chase.</dd><dt>SR impact</dt><dd>Batter runs minus batter balls faced multiplied by match RPB.</dd><dt>Runs saved impact</dt><dd>The signed bowling adjustment from the match baseline.</dd><dt>Bowler-credited wicket</dt><dd>A wicket assigned to the bowler in the scorecard. A run-out is not a bowler wicket.</dd><dt>Dot ball</dt><dd>A dot recorded in the bowling figures.</dd><dt>Maiden over</dt><dd>Six legal deliveries with no run charged to the bowler.</dd><dt>Primary fielder</dt><dd>The identified fielder who receives the full run-out credit.</dd><dt>POTM</dt><dd>Official Player of the Match. This award adds zero MVP points.</dd><dt>Statistical MVP</dt><dd>The sum of batting, bowling and fielding impact.</dd><dt>Signed value</dt><dd>A number that can be positive, zero or negative.</dd></dl></section>
+    </article>
+  </main>
+  <footer>CRC Analytics · CRC MVP v2.0 · <a href="index.html">Back to CRC Analytics</a></footer>
+</body>
+</html>
